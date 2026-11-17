@@ -27,6 +27,7 @@ let token;
 let userId;
 let savedProjectId;
 let projectVersionId;
+let featureVersionId;
 let generatedIdeaId;
 
 test('GET /api/health returns API health', async () => {
@@ -89,6 +90,28 @@ test('registration hashes credentials and returns a usable JWT', async () => {
   const [rows] = await pool.execute('SELECT password_hash FROM users WHERE id = ?', [userId]);
   assert.equal(rows.length, 1);
   assert.notEqual(rows[0].password_hash, password);
+});
+
+test('regular users cannot create curated catalogue entries', async () => {
+  const response = await request(app)
+    .post('/api/project-ideas')
+    .set('Authorization', `Bearer ${token}`)
+    .send({
+      title: 'Forbidden curated idea',
+      description: 'This should be rejected because regular users are not administrators.',
+      difficulty: 'Beginner',
+      category: 'Web'
+    });
+  assert.equal(response.status, 403);
+});
+
+test('AI endpoint reports a clear configuration error when no provider key exists', async () => {
+  process.env.AI_API_KEY = '';
+  const response = await request(app)
+    .post('/api/ai/generate')
+    .send({ prompt: 'Generate a small web app idea.' });
+  assert.equal(response.status, 503);
+  assert.match(response.body.message, /AI generation is not configured/);
 });
 
 test('authenticated profile endpoint reloads the current user', async () => {
@@ -165,6 +188,39 @@ test('project snapshots can be created, listed, restored and deleted', async () 
 
   const deleted = await request(app)
     .delete(`/api/project-versions/${projectVersionId}`)
+    .set('Authorization', `Bearer ${token}`);
+  assert.equal(deleted.status, 200);
+});
+
+test('feature history supports create, list, update and delete', async () => {
+  const created = await request(app)
+    .post('/api/feature-versions')
+    .set('Authorization', `Bearer ${token}`)
+    .send({
+      project_id: savedProjectId,
+      label: 'feature-plan-v1',
+      features: ['Login', 'Dashboard'],
+      notes: 'Initial feature plan'
+    });
+  assert.equal(created.status, 201);
+  featureVersionId = created.body.data.id;
+
+  const listed = await request(app)
+    .get('/api/feature-versions')
+    .query({ project_id: savedProjectId })
+    .set('Authorization', `Bearer ${token}`);
+  assert.equal(listed.status, 200);
+  assert.ok(listed.body.data.some((version) => version.id === featureVersionId));
+
+  const updated = await request(app)
+    .patch(`/api/feature-versions/${featureVersionId}`)
+    .set('Authorization', `Bearer ${token}`)
+    .send({ label: 'feature-plan-v2', features: ['Login', 'Dashboard', 'Settings'] });
+  assert.equal(updated.status, 200);
+  assert.equal(updated.body.data.label, 'feature-plan-v2');
+
+  const deleted = await request(app)
+    .delete(`/api/feature-versions/${featureVersionId}`)
     .set('Authorization', `Bearer ${token}`);
   assert.equal(deleted.status, 200);
 });
