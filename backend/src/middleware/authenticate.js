@@ -1,7 +1,7 @@
 import jwt from 'jsonwebtoken';
-import pool from '../config/database.js';
 import { env } from '../config/env.js';
 import { isTokenRevoked } from '../services/tokenService.js';
+import UserRepository from '../repositories/UserRepository.js';
 import { errorResponse } from '../utils/apiResponse.js';
 
 export async function authenticate(req, res, next) {
@@ -37,16 +37,13 @@ export async function authenticate(req, res, next) {
       return errorResponse(res, 'Your session has been logged out. Please log in again.', 401);
     }
 
-    const [users] = await pool.execute(
-      'SELECT id, name, email, role FROM users WHERE id = ? LIMIT 1',
-      [decoded.userId]
-    );
+    const user = await UserRepository.findById(decoded.userId);
 
-    if (users.length === 0) {
+    if (!user) {
       return errorResponse(res, 'User account not found. Please log in again.', 401);
     }
 
-    req.user = users[0];
+    req.user = user;
     req.authToken = token;
     req.authTokenExpiresAt = new Date(decoded.exp * 1000);
     return next();
