@@ -5,6 +5,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Sparkles, Loader2, BookmarkPlus, RefreshCw } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { Badge } from '@/components/ui/badge';
+import { useToast } from '@/components/ui/use-toast';
 
 const CATEGORIES = ['Web', 'Mobile', 'AI', 'ML', 'CLI', 'Game', 'API', 'Data', 'DevOps'];
 const DIFFICULTIES = ['Beginner', 'Intermediate', 'Advanced'];
@@ -15,33 +16,58 @@ export default function AIGeneratorPanel({ onSave }) {
   const [loading, setLoading] = useState(false);
   const [idea, setIdea] = useState(null);
   const [saving, setSaving] = useState(false);
+  const { toast } = useToast();
 
   const generate = async () => {
     setLoading(true);
     setIdea(null);
-    const result = await base44.integrations.Core.InvokeLLM({
-      prompt: `Generate a unique and creative coding project idea${category ? ` in the ${category} category` : ''}${difficulty ? ` for a ${difficulty} developer` : ''}. Be specific and practical. Return a JSON object.`,
-      response_json_schema: {
-        type: 'object',
-        properties: {
-          title: { type: 'string' },
-          description: { type: 'string' },
-          difficulty: { type: 'string', enum: ['Beginner', 'Intermediate', 'Advanced'] },
-          category: { type: 'string', enum: ['Web', 'Mobile', 'AI', 'ML', 'CLI', 'Game', 'API', 'Data', 'DevOps', 'Other'] },
-          tech_stack: { type: 'array', items: { type: 'string' } },
-          tags: { type: 'array', items: { type: 'string' } },
+    try {
+      const selectedCategory = category === 'any' ? '' : category;
+      const selectedDifficulty = difficulty === 'any' ? '' : difficulty;
+      const result = await base44.integrations.Core.InvokeLLM({
+        prompt: `Generate a unique and creative coding project idea${selectedCategory ? ` in the ${selectedCategory} category` : ''}${selectedDifficulty ? ` for a ${selectedDifficulty} developer` : ''}. Be specific and practical. Return a JSON object.`,
+        response_json_schema: {
+          type: 'object',
+          properties: {
+            title: { type: 'string' },
+            description: { type: 'string' },
+            difficulty: { type: 'string', enum: ['Beginner', 'Intermediate', 'Advanced'] },
+            category: { type: 'string', enum: ['Web', 'Mobile', 'AI', 'ML', 'CLI', 'Game', 'API', 'Data', 'DevOps', 'Other'] },
+            tech_stack: { type: 'array', items: { type: 'string' } },
+            tags: { type: 'array', items: { type: 'string' } },
+          },
         },
-      },
-    });
-    setIdea(result);
-    setLoading(false);
+      });
+      if (!result?.title || !result?.description) {
+        throw new Error('The AI provider returned an incomplete project idea.');
+      }
+      setIdea(result);
+    } catch (error) {
+      toast({
+        title: 'Could not generate an idea',
+        description: error.message || 'Check your AI provider configuration and try again.',
+        variant: 'destructive',
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleSave = async () => {
-    if (!idea) return;
+    if (!idea || !onSave) return;
     setSaving(true);
-    await onSave({ ...idea, idea_id: 'ai-generated' });
-    setSaving(false);
+    try {
+      await onSave({ ...idea, idea_id: 'ai-generated' });
+      toast({ title: 'Project saved', description: 'Find it in My Projects.' });
+    } catch (error) {
+      toast({
+        title: 'Could not save project',
+        description: error.message || 'Please try again.',
+        variant: 'destructive',
+      });
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -63,7 +89,7 @@ export default function AIGeneratorPanel({ onSave }) {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="any">Any category</SelectItem>
-            {CATEGORIES.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+            {CATEGORIES.map((item) => <SelectItem key={item} value={item}>{item}</SelectItem>)}
           </SelectContent>
         </Select>
 
@@ -73,7 +99,7 @@ export default function AIGeneratorPanel({ onSave }) {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="any">Any level</SelectItem>
-            {DIFFICULTIES.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}
+            {DIFFICULTIES.map((item) => <SelectItem key={item} value={item}>{item}</SelectItem>)}
           </SelectContent>
         </Select>
 
@@ -85,12 +111,8 @@ export default function AIGeneratorPanel({ onSave }) {
 
       <AnimatePresence>
         {idea && (
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0 }}
-            className="bg-card border border-border rounded-xl p-4 mt-2"
-          >
+          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
+            className="bg-card border border-border rounded-xl p-4 mt-2">
             <div className="flex items-start justify-between gap-4">
               <div className="flex-1">
                 <h3 className="font-bold text-base mb-1">{idea.title}</h3>
@@ -101,8 +123,8 @@ export default function AIGeneratorPanel({ onSave }) {
                 </div>
                 {idea.tech_stack?.length > 0 && (
                   <div className="flex flex-wrap gap-1 mt-2">
-                    {idea.tech_stack.map(t => (
-                      <span key={t} className="text-[11px] font-mono bg-muted px-2 py-0.5 rounded">{t}</span>
+                    {idea.tech_stack.map((tech) => (
+                      <span key={tech} className="text-[11px] font-mono bg-muted px-2 py-0.5 rounded">{tech}</span>
                     ))}
                   </div>
                 )}
@@ -110,12 +132,10 @@ export default function AIGeneratorPanel({ onSave }) {
             </div>
             <div className="flex gap-2 mt-4">
               <Button size="sm" onClick={handleSave} disabled={saving} className="gap-2 bg-primary hover:bg-primary/90">
-                <BookmarkPlus className="w-4 h-4" />
-                {saving ? 'Saving...' : 'Save Project'}
+                <BookmarkPlus className="w-4 h-4" /> {saving ? 'Saving...' : 'Save Project'}
               </Button>
               <Button size="sm" variant="outline" onClick={generate} disabled={loading} className="gap-2">
-                <RefreshCw className="w-3.5 h-3.5" />
-                Regenerate
+                <RefreshCw className="w-3.5 h-3.5" /> Regenerate
               </Button>
             </div>
           </motion.div>
