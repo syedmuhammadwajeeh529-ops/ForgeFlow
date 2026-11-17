@@ -4,6 +4,7 @@ import User from '../models/User.js';
 import { env } from '../config/env.js';
 import { generateToken } from '../utils/generateToken.js';
 import { formatUser } from '../utils/formatUser.js';
+import { revokeToken } from './tokenService.js';
 
 class AuthService {
   async register({ name, email, password }) {
@@ -81,6 +82,11 @@ class AuthService {
       user: formatUser(user),
       token
     };
+  }
+
+  async logout(token, expiresAt) {
+    await revokeToken(token, expiresAt);
+    return true;
   }
 
   async getCurrentUser(userId) {
