@@ -33,7 +33,7 @@ CREATE TABLE IF NOT EXISTS revoked_tokens (
     expires_at TIMESTAMP NOT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     INDEX idx_revoked_tokens_expiry (expires_at)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- =========================================================
 -- 2. PROJECT IDEAS
@@ -82,8 +82,9 @@ CREATE TABLE IF NOT EXISTS project_ideas (
 
     INDEX idx_project_ideas_category (category),
     INDEX idx_project_ideas_difficulty (difficulty),
-    INDEX idx_project_ideas_curated (is_curated)
-);
+    INDEX idx_project_ideas_curated (is_curated),
+    INDEX idx_project_ideas_filters_created (category, difficulty, created_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- =========================================================
 -- 3. GENERATED IDEAS
@@ -120,8 +121,9 @@ CREATE TABLE IF NOT EXISTS generated_ideas (
         ON DELETE CASCADE,
 
     INDEX idx_generated_ideas_owner (created_by_id),
-    INDEX idx_generated_ideas_created (created_at)
-);
+    INDEX idx_generated_ideas_created (created_at),
+    INDEX idx_generated_ideas_owner_created (created_by_id, created_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- =========================================================
 -- 4. SAVED PROJECTS
@@ -171,8 +173,11 @@ CREATE TABLE IF NOT EXISTS saved_projects (
 
     INDEX idx_saved_projects_owner (created_by_id),
     INDEX idx_saved_projects_status (status),
-    INDEX idx_saved_projects_updated (updated_at)
-);
+    INDEX idx_saved_projects_updated (updated_at),
+    INDEX idx_saved_projects_owner_updated (created_by_id, updated_at),
+    INDEX idx_saved_projects_owner_status (created_by_id, status),
+    INDEX idx_saved_projects_owner_category (created_by_id, category)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- =========================================================
 -- 5. PROJECT VERSIONS
@@ -208,8 +213,9 @@ CREATE TABLE IF NOT EXISTS project_versions (
 
     INDEX idx_project_versions_project (project_id),
     INDEX idx_project_versions_owner (created_by_id),
-    INDEX idx_project_versions_created (created_at)
-);
+    INDEX idx_project_versions_created (created_at),
+    INDEX idx_project_versions_project_owner_created (project_id, created_by_id, created_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- =========================================================
 -- 6. FEATURE VERSIONS
@@ -243,5 +249,6 @@ CREATE TABLE IF NOT EXISTS feature_versions (
 
     INDEX idx_feature_versions_project (project_id),
     INDEX idx_feature_versions_owner (created_by_id),
-    INDEX idx_feature_versions_created (created_at)
-);
+    INDEX idx_feature_versions_created (created_at),
+    INDEX idx_feature_versions_project_owner_created (project_id, created_by_id, created_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
