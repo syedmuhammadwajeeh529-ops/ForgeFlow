@@ -27,6 +27,14 @@ CREATE TABLE IF NOT EXISTS users (
         ON UPDATE CURRENT_TIMESTAMP
 );
 
+-- Revoked JWT hashes allow the API to invalidate sessions at logout.
+CREATE TABLE IF NOT EXISTS revoked_tokens (
+    token_hash CHAR(64) PRIMARY KEY,
+    expires_at TIMESTAMP NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_revoked_tokens_expiry (expires_at)
+);
+
 -- =========================================================
 -- 2. PROJECT IDEAS
 -- Curated ideas available to everyone.
