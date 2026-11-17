@@ -1,6 +1,7 @@
 import jwt from 'jsonwebtoken';
 import pool from '../config/database.js';
 import { env } from '../config/env.js';
+import { isTokenRevoked } from '../services/tokenService.js';
 import { errorResponse } from '../utils/apiResponse.js';
 
 export async function authenticate(req, res, next) {
@@ -28,8 +29,12 @@ export async function authenticate(req, res, next) {
       return errorResponse(res, message, 401);
     }
 
-    if (!decoded.userId || typeof decoded.userId !== 'string') {
+    if (typeof decoded.userId !== 'string' || !decoded.userId || !Number.isInteger(decoded.exp)) {
       return errorResponse(res, 'Invalid authentication token.', 401);
+    }
+
+    if (await isTokenRevoked(token)) {
+      return errorResponse(res, 'Your session has been logged out. Please log in again.', 401);
     }
 
     const [users] = await pool.execute(
@@ -42,6 +47,8 @@ export async function authenticate(req, res, next) {
     }
 
     req.user = users[0];
+    req.authToken = token;
+    req.authTokenExpiresAt = new Date(decoded.exp * 1000);
     return next();
   } catch (error) {
     return next(error);
