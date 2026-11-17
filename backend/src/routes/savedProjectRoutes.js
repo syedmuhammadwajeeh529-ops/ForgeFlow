@@ -1,0 +1,11 @@
+import { Router } from 'express';
+import { authenticate } from '../middleware/authenticate.js';
+import { listSavedProjects,createSavedProject,getSavedProject,updateSavedProject,deleteSavedProject } from '../controllers/savedProjectController.js';
+const router=Router();
+router.use(authenticate);
+router.get('/',listSavedProjects);
+router.post('/',createSavedProject);
+router.get('/:id',getSavedProject);
+router.patch('/:id',updateSavedProject);
+router.delete('/:id',deleteSavedProject);
+export default router;
