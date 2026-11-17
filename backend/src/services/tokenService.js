@@ -1,28 +1,4 @@
-import { createHash } from 'node:crypto';
-import pool from '../config/database.js';
+import RevokedTokenRepository from '../repositories/RevokedTokenRepository.js';
 
-const hashToken = (token) => createHash('sha256').update(token).digest('hex');
-
-export async function isTokenRevoked(token) {
-  const tokenHash = hashToken(token);
-  const [rows] = await pool.execute(
-    'SELECT token_hash FROM revoked_tokens WHERE token_hash = ? AND expires_at > CURRENT_TIMESTAMP LIMIT 1',
-    [tokenHash]
-  );
-  return rows.length > 0;
-}
-
-export async function revokeToken(token, expiresAt) {
-  if (!token || !(expiresAt instanceof Date) || Number.isNaN(expiresAt.getTime())) {
-    throw new TypeError('A valid token and expiry date are required to revoke a session.');
-  }
-
-  const tokenHash = hashToken(token);
-  await pool.execute(
-    'INSERT INTO revoked_tokens (token_hash, expires_at) VALUES (?, ?) ON DUPLICATE KEY UPDATE expires_at = VALUES(expires_at)',
-    [tokenHash, expiresAt]
-  );
-
-  // Opportunistically remove expired hashes so the table stays compact.
-  await pool.execute('DELETE FROM revoked_tokens WHERE expires_at <= CURRENT_TIMESTAMP');
-}
+export const isTokenRevoked = (token) => RevokedTokenRepository.isRevoked(token);
+export const revokeToken = (token, expiresAt) => RevokedTokenRepository.revoke(token, expiresAt);
