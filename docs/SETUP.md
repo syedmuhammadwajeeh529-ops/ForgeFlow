@@ -12,7 +12,7 @@ From the repository root:
 npm install
 ```
 
-Create the database and seed the curated ideas:
+Create the database schema and seed the curated ideas. When upgrading an existing ForgeFlow database, rerun the schema file as well; its `CREATE TABLE IF NOT EXISTS` statements add newly introduced tables such as `revoked_tokens` without replacing existing tables:
 
 ```bash
 mysql -u root -p < backend/database/schema.sql
@@ -30,6 +30,8 @@ npm run dev
 ```
 
 Or run them separately with `npm run dev:backend` and `npm run dev:frontend`.
+
+Run the backend integration suite with `npm test` from the repository root. The test suite expects a reachable MySQL database with the ForgeFlow schema and seeded project ideas.
 
 - Frontend: http://localhost:5173
 - API health: http://localhost:5000/api/health
