@@ -1,6 +1,7 @@
 import jwt from 'jsonwebtoken';
 import pool from '../config/database.js';
 import { env } from '../config/env.js';
+import { isTokenRevoked } from '../services/tokenService.js';
 
 export async function optionalAuth(req, res, next) {
   try {
@@ -28,7 +29,7 @@ export async function optionalAuth(req, res, next) {
       return next();
     }
 
-    if (typeof decoded.userId !== 'string' || !decoded.userId) {
+    if (typeof decoded.userId !== 'string' || !decoded.userId || await isTokenRevoked(token)) {
       req.user = null;
       return next();
     }
