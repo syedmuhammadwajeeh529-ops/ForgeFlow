@@ -42,3 +42,11 @@ test('login validates required credentials before accessing the database', async
   assert.equal(response.body.success, false);
   assert.equal(response.body.message, 'Validation failed. Please check your input.');
 });
+
+test('CORS rejects an origin that is not on the allowlist', async () => {
+  const response = await request(app)
+    .get('/api/health')
+    .set('Origin', 'https://untrusted.example');
+  assert.equal(response.status, 403);
+  assert.equal(response.body.success, false);
+});
