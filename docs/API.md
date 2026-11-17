@@ -9,7 +9,7 @@ All routes are prefixed with `/api`. Successful responses use `{ success, messag
 - `POST /auth/register` body: name, email, password.
 - `POST /auth/login` body: email, password.
 - `GET /auth/me` authenticated current user.
-- `POST /auth/logout` authenticated client-side token logout acknowledgement. The current JWT design is stateless, so the client must discard its token.
+- `POST /auth/logout` authenticated logout. The backend stores a SHA-256 hash of the token until its expiry, immediately invalidating that session. The client should also discard its copy.
 
 Send authenticated requests with `Authorization: Bearer <token>`.
 
