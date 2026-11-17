@@ -22,7 +22,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
-      - name: Install dependencies
-        run: npm install
+      - name: Install backend workspace dependencies
+        run: npm install --workspace backend --include-workspace-root=false
       - name: Run backend tests
         run: npm test
