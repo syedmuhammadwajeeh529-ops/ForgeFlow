@@ -35,6 +35,7 @@ export default function ProjectVersionsModal({ project, open, onClose }) {
     mutationFn: (data) => base44.entities.ProjectVersion.create(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: versionsKey });
+      queryClient.invalidateQueries({ queryKey: ['saved-projects'] });
       setLabel('');
       toast({ title: 'Snapshot created' });
     },
@@ -49,22 +50,12 @@ export default function ProjectVersionsModal({ project, open, onClose }) {
   });
 
   const switchMutation = useMutation({
-    mutationFn: async (version) => {
-      await base44.entities.SavedProject.update(projectId, { current_version: version.label });
-      if (version.features) {
-        await base44.entities.FeatureVersion.create({
-          project_id: projectId,
-          label: version.label,
-          features: version.features,
-          notes: `Restored from ${version.label}`,
-        });
-      }
-    },
+    mutationFn: (version) => base44.entities.ProjectVersion.switch(projectId, version.id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: versionsKey });
       queryClient.invalidateQueries({ queryKey: ['feature-versions', projectId] });
       queryClient.invalidateQueries({ queryKey: ['saved-projects'] });
-      toast({ title: 'Switched project version' });
+      toast({ title: 'Project version restored' });
     },
   });
 
@@ -81,7 +72,7 @@ export default function ProjectVersionsModal({ project, open, onClose }) {
   };
 
   return (
-    <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
+    <Dialog open={open} onOpenChange={(value) => !value && onClose()}>
       <DialogContent className="max-w-2xl max-h-[88vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-lg">
@@ -93,25 +84,19 @@ export default function ProjectVersionsModal({ project, open, onClose }) {
         <div className="flex items-center gap-2">
           <Input
             value={label}
-            onChange={(e) => setLabel(e.target.value)}
+            onChange={(event) => setLabel(event.target.value)}
             placeholder={`v0.${versions.length + 1}`}
             className="h-8 text-sm flex-1"
-            onKeyDown={(e) => e.key === 'Enter' && handleSnapshot()}
+            onKeyDown={(event) => event.key === 'Enter' && handleSnapshot()}
           />
-          <Button
-            size="sm"
-            className="h-8 gap-1.5 text-xs bg-primary hover:bg-primary/90 shrink-0"
-            onClick={handleSnapshot}
-            disabled={createMutation.isPending}
-          >
+          <Button size="sm" className="h-8 gap-1.5 text-xs bg-primary hover:bg-primary/90 shrink-0"
+            onClick={handleSnapshot} disabled={createMutation.isPending}>
             <Camera className="w-3.5 h-3.5" /> New snapshot
           </Button>
         </div>
 
         {isLoading ? (
-          <div className="py-10 flex justify-center">
-            <Loader2 className="w-6 h-6 animate-spin text-primary" />
-          </div>
+          <div className="py-10 flex justify-center"><Loader2 className="w-6 h-6 animate-spin text-primary" /></div>
         ) : versions.length === 0 ? (
           <div className="text-center py-12 text-muted-foreground">
             <GitBranch className="w-10 h-10 mx-auto mb-3 opacity-20" />
@@ -124,49 +109,23 @@ export default function ProjectVersionsModal({ project, open, onClose }) {
               const features = splitFeatures(version.features);
               const isCurrent = project?.current_version === version.label;
               return (
-                <div
-                  key={version.id}
-                  className={`border rounded-xl p-3 flex items-start gap-3 ${
-                    isCurrent ? 'border-primary/40 bg-primary/5' : 'border-border'
-                  }`}
-                >
+                <div key={version.id} className={`border rounded-xl p-3 flex items-start gap-3 ${isCurrent ? 'border-primary/40 bg-primary/5' : 'border-border'}`}>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap mb-1">
-                      <Badge className="font-mono text-[11px] bg-primary/10 text-primary border-primary/20 px-2 py-0">
-                        {version.label}
-                      </Badge>
-                      {isCurrent && (
-                        <Badge className="text-[10px] bg-green-100 text-green-700 border-green-200 px-1.5 py-0">
-                          Current
-                        </Badge>
-                      )}
-                      <span className="text-[10px] text-muted-foreground">
-                        {new Date(version.created_date).toLocaleDateString()}
-                      </span>
+                      <Badge className="font-mono text-[11px] bg-primary/10 text-primary border-primary/20 px-2 py-0">{version.label}</Badge>
+                      {isCurrent && <Badge className="text-[10px] bg-green-100 text-green-700 border-green-200 px-1.5 py-0">Current</Badge>}
+                      <span className="text-[10px] text-muted-foreground">{new Date(version.created_date).toLocaleDateString()}</span>
                     </div>
-                    {version.notes && (
-                      <p className="text-xs text-muted-foreground line-clamp-2 mb-1">{version.notes}</p>
-                    )}
-                    <p className="text-[11px] text-muted-foreground">
-                      {features.length} feature{features.length !== 1 ? 's' : ''} in this version
-                    </p>
+                    {version.notes && <p className="text-xs text-muted-foreground line-clamp-2 mb-1">{version.notes}</p>}
+                    <p className="text-[11px] text-muted-foreground">{features.length} feature{features.length !== 1 ? 's' : ''} in this version</p>
                   </div>
                   <div className="flex items-center gap-1 shrink-0">
-                    <Button
-                      size="sm"
-                      variant={isCurrent ? 'ghost' : 'outline'}
-                      className="h-7 text-[11px] gap-1 px-2"
-                      disabled={isCurrent || switchMutation.isPending}
-                      onClick={() => switchMutation.mutate(version)}
-                    >
+                    <Button size="sm" variant={isCurrent ? 'ghost' : 'outline'} className="h-7 text-[11px] gap-1 px-2"
+                      disabled={isCurrent || switchMutation.isPending} onClick={() => switchMutation.mutate(version)}>
                       <Check className="w-3 h-3" /> Switch
                     </Button>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      className="h-7 w-7 p-0 text-muted-foreground hover:text-destructive"
-                      onClick={() => deleteMutation.mutate(version.id)}
-                    >
+                    <Button size="sm" variant="ghost" className="h-7 w-7 p-0 text-muted-foreground hover:text-destructive"
+                      disabled={deleteMutation.isPending} onClick={() => deleteMutation.mutate(version.id)}>
                       <Trash2 className="w-3.5 h-3.5" />
                     </Button>
                   </div>
