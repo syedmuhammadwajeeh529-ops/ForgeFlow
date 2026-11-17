@@ -4,6 +4,7 @@ ForgeFlow targets MySQL 8+ and uses InnoDB, utf8mb4 and foreign keys. The canoni
 
 Tables:
 - `users`: account identity, password hash and role.
+- `revoked_tokens`: SHA-256 token hashes and expiry timestamps for server-side logout.
 - `project_ideas`: public curated project catalogue.
 - `generated_ideas`: per-user AI-generated ideas.
 - `saved_projects`: per-user saved project workspace.
