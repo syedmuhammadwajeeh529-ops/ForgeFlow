@@ -44,3 +44,7 @@ AI_MODEL=gpt-4o-mini
 ```
 
 For OpenRouter, set AI_BASE_URL to https://openrouter.ai/api/v1 and choose a model available to your account.
+
+## Optional Base44 data migration
+
+The curated catalogue is included in backend/database/seed.sql. The original Base44 app also held 15 saved projects and one project snapshot. After creating your ForgeFlow account, open backend/database/import_base44_saved_projects.sql, replace the placeholder email with your ForgeFlow account email, and run the script once against the forgeflow database. It assigns the old anonymous records to that account; only run it if those records are yours. The original app had no generated-idea records or feature-history records to import.
