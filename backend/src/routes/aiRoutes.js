@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import rateLimit from 'express-rate-limit';
-import { authenticate } from '../middleware/authenticate.js';
+import { optionalAuth } from '../middleware/optionalAuth.js';
 import { validateRequest } from '../middleware/validateRequest.js';
 import { generateWithAIValidator } from '../validators/aiValidator.js';
 import { generateWithAI } from '../controllers/aiController.js';
@@ -17,5 +17,5 @@ const aiRateLimit = rateLimit({
   }
 });
 
-router.post('/generate', authenticate, aiRateLimit, generateWithAIValidator, validateRequest, generateWithAI);
+router.post('/generate', optionalAuth, aiRateLimit, generateWithAIValidator, validateRequest, generateWithAI);
 export default router;

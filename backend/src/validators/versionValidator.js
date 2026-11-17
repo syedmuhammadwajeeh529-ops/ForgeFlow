@@ -12,7 +12,9 @@ const featureValue = (field) => body(field).optional().custom((value) => {
 });
 
 export const listVersionsValidator = [
-  query('project_id').isUUID().withMessage('A valid project_id is required.')
+  query('project_id').isUUID().withMessage('A valid project_id is required.'),
+  query('sort').optional().isIn(['created_date', '-created_date', 'updated_date', '-updated_date']),
+  query('limit').optional().isInt({ min: 1, max: 100 }).toInt()
 ];
 
 export const createProjectVersionValidator = [

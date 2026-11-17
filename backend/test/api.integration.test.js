@@ -127,7 +127,7 @@ test('ForgeFlow API integration: authentication, ownership, projects, versions a
     const snapshot = snapshotResponse.body.data;
 
     const versionList = await request(app)
-      .get(`/api/project-versions?project_id=${project.id}`)
+      .get(`/api/project-versions?project_id=${project.id}&sort=-created_date&limit=50`)
       .set('Authorization', `Bearer ${authenticatedToken}`)
       .expect(200);
     assert.equal(versionList.body.data.length, 1);
@@ -151,6 +151,12 @@ test('ForgeFlow API integration: authentication, ownership, projects, versions a
       .send({ label: 'Feature plan 2', features: ['Login', 'Saved projects', 'Version history'] })
       .expect(200);
 
+    const ascendingFeatures = await request(app)
+      .get(`/api/feature-versions?project_id=${project.id}&sort=created_date&limit=50`)
+      .set('Authorization', `Bearer ${authenticatedToken}`)
+      .expect(200);
+    assert.equal(ascendingFeatures.body.data.length, 1);
+
     const generatedIdea = await request(app)
       .post('/api/generated-ideas')
       .set('Authorization', `Bearer ${authenticatedToken}`)
@@ -162,11 +168,23 @@ test('ForgeFlow API integration: authentication, ownership, projects, versions a
       })
       .expect(201);
 
+    const bulkGenerated = await request(app)
+      .post('/api/generated-ideas/bulk')
+      .set('Authorization', `Bearer ${authenticatedToken}`)
+      .send({
+        ideas: [
+          { title: 'Bulk idea one', description: 'First idea in a transactional bulk insert.', category: 'Web' },
+          { title: 'Bulk idea two', description: 'Second idea in a transactional bulk insert.', category: 'Game' }
+        ]
+      })
+      .expect(201);
+    assert.equal(bulkGenerated.body.data.length, 2);
+
     const generatedList = await request(app)
       .get('/api/generated-ideas')
       .set('Authorization', `Bearer ${authenticatedToken}`)
       .expect(200);
-    assert.equal(generatedList.body.data.ideas.length, 1);
+    assert.equal(generatedList.body.data.ideas.length, 3);
 
     const secondRegistration = await request(app)
       .post('/api/auth/register')
@@ -184,7 +202,7 @@ test('ForgeFlow API integration: authentication, ownership, projects, versions a
       .set('Authorization', `Bearer ${otherToken}`)
       .expect(404);
 
-    await request(app).post('/api/ai/generate').send({ prompt: 'Generate an idea' }).expect(401);
+    await request(app).post('/api/ai/generate').send({ prompt: 'Generate an idea' }).expect(503);
     await request(app)
       .post('/api/ai/generate')
       .set('Authorization', `Bearer ${authenticatedToken}`)

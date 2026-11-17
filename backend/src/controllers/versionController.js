@@ -20,7 +20,10 @@ async function assertOwnedProject(projectId, userId) {
 
 export const listProjectVersions = asyncHandler(async (req, res) => {
   await assertOwnedProject(req.query.project_id, req.user.id);
-  const versions = await ProjectVersion.findAll(req.query.project_id, req.user.id);
+  const versions = await ProjectVersion.findAll(req.query.project_id, req.user.id, {
+    sort: req.query.sort || '-created_date',
+    limit: req.query.limit || 50
+  });
   return successResponse(res, versions, 'Project versions retrieved.');
 });
 
@@ -47,7 +50,10 @@ export const deleteProjectVersion = asyncHandler(async (req, res) => {
 
 export const listFeatureVersions = asyncHandler(async (req, res) => {
   await assertOwnedProject(req.query.project_id, req.user.id);
-  const versions = await FeatureVersion.findAll(req.query.project_id, req.user.id);
+  const versions = await FeatureVersion.findAll(req.query.project_id, req.user.id, {
+    sort: req.query.sort || '-created_date',
+    limit: req.query.limit || 50
+  });
   return successResponse(res, versions, 'Feature versions retrieved.');
 });
 
