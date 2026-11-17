@@ -4,6 +4,7 @@
 USE forgeflow;
 SET @forgeflow_import_email = 'REPLACE_WITH_YOUR_FORGEFLOW_EMAIL';
 SET @forgeflow_user_id = (SELECT id FROM users WHERE email = @forgeflow_import_email LIMIT 1);
+DROP PROCEDURE IF EXISTS import_legacy_forgeflow_projects;
 DELIMITER //
 CREATE PROCEDURE import_legacy_forgeflow_projects()
 BEGIN
