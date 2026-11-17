@@ -1,0 +1,15 @@
+import {useState} from 'react';
+import {Link,useNavigate} from 'react-router-dom';
+import {Code2,Loader2,LogIn,UserPlus} from 'lucide-react';
+import {useAuth} from '@/lib/AuthContext';
+import AuthLayout from '@/components/AuthLayout';
+import {Button} from '@/components/ui/button';
+import {Input} from '@/components/ui/input';
+import {Label} from '@/components/ui/label';
+export default function Login(){
+ const {login,register}=useAuth();const navigate=useNavigate();const[mode,setMode]=useState('login');const[name,setName]=useState('');const[email,setEmail]=useState('');const[password,setPassword]=useState('');const[busy,setBusy]=useState(false);const[error,setError]=useState('');
+ const submit=async(e)=>{e.preventDefault();setBusy(true);setError('');try{if(mode==='register')await register({name,email,password});else await login({email,password});const target=new URLSearchParams(window.location.search).get('returnTo');navigate(target&&target.startsWith('/')&&!target.startsWith('//')?target:'/')}catch(err){setError(err.message||'Unable to authenticate.')}finally{setBusy(false)}};
+ return <AuthLayout icon={mode==='login'?LogIn:UserPlus} title={mode==='login'?'Welcome back':'Create your account'} subtitle="Sign in to save ideas and manage your projects." footer={<span>{mode==='login'?"New to ForgeFlow? ":"Already have an account? "}<button className="font-semibold text-primary hover:underline" onClick={()=>{setMode(mode==='login'?'register':'login');setError('')}}>{mode==='login'?'Create an account':'Sign in'}</button></span>}>
+ <form onSubmit={submit} className="space-y-4">{mode==='register'&&<div className="space-y-2"><Label htmlFor="name">Name</Label><Input id="name" autoComplete="name" value={name} onChange={e=>setName(e.target.value)} required minLength={2}/></div>}<div className="space-y-2"><Label htmlFor="email">Email</Label><Input id="email" type="email" autoComplete="email" value={email} onChange={e=>setEmail(e.target.value)} required/></div><div className="space-y-2"><Label htmlFor="password">Password</Label><Input id="password" type="password" autoComplete={mode==='login'?'current-password':'new-password'} value={password} onChange={e=>setPassword(e.target.value)} required minLength={8}/>{mode==='register'&&<p className="text-xs text-muted-foreground">Use at least 8 characters.</p>}</div>{error&&<p role="alert" className="text-sm text-destructive">{error}</p>}<Button type="submit" className="w-full" disabled={busy}>{busy?<Loader2 className="w-4 h-4 mr-2 animate-spin"/>:<Code2 className="w-4 h-4 mr-2"/>}{mode==='login'?'Sign in':'Create account'}</Button></form><p className="text-xs text-muted-foreground text-center mt-5">By continuing, you agree to use ForgeFlow responsibly and keep your account credentials secure.</p><div className="text-center mt-4"><Link to="/" className="text-xs text-muted-foreground hover:text-primary">Back to Explore</Link></div>
+ </AuthLayout>
+}
