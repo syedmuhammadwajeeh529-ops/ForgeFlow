@@ -42,9 +42,10 @@ export const getCurrentUser = asyncHandler(async (req, res) => {
 });
 
 export const logout = asyncHandler(async (req, res) => {
+  await AuthService.logout(req.authToken, req.authTokenExpiresAt);
   return successResponse(
     res,
     null,
-    'Logged out successfully.'
+    'Session revoked. You have been logged out.'
   );
 });
