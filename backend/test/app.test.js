@@ -272,3 +272,17 @@ test('saved project can be deleted by its owner', async () => {
   assert.equal(response.status, 200);
   assert.equal(response.body.data.deleted, true);
 });
+
+test('logout revokes the JWT so it cannot be reused', async () => {
+  const loggedOut = await request(app)
+    .post('/api/auth/logout')
+    .set('Authorization', `Bearer ${token}`);
+  assert.equal(loggedOut.status, 200);
+  assert.match(loggedOut.body.message, /Session revoked/);
+
+  const reused = await request(app)
+    .get('/api/auth/me')
+    .set('Authorization', `Bearer ${token}`);
+  assert.equal(reused.status, 401);
+  assert.match(reused.body.message, /logged out/);
+});
