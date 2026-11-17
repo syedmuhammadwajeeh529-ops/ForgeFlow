@@ -50,10 +50,22 @@ export default function ProjectVersionsModal({ project, open, onClose }) {
   });
 
   const switchMutation = useMutation({
-    mutationFn: (version) => base44.entities.ProjectVersion.switch(projectId, version.id),
+    mutationFn: async (version) => {
+      const restoredProject = await base44.entities.ProjectVersion.switch(projectId, version.id);
+      if (version.features) {
+        await base44.entities.FeatureVersion.create({
+          project_id: projectId,
+          label: version.label,
+          features: version.features,
+          notes: `Restored from ${version.label}`,
+        });
+      }
+      return restoredProject;
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: versionsKey });
       queryClient.invalidateQueries({ queryKey: ['feature-versions', projectId] });
+      queryClient.invalidateQueries({ queryKey: ['feature-versions-all', projectId] });
       queryClient.invalidateQueries({ queryKey: ['saved-projects'] });
       toast({ title: 'Project version restored' });
     },
