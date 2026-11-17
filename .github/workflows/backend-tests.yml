@@ -48,6 +48,8 @@ jobs:
         run: npm install --workspace backend --include-workspace-root=false
       - name: Create database schema
         run: mysql -h 127.0.0.1 -uroot -proot < backend/database/schema.sql
+      - name: Apply additive database indexes
+        run: mysql -h 127.0.0.1 -uroot -proot < backend/database/002_query_indexes.sql
       - name: Seed curated ideas
         run: mysql -h 127.0.0.1 -uroot -proot forgeflow < backend/database/seed.sql
       - name: Run backend tests
