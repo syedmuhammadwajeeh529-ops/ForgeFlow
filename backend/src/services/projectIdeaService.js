@@ -17,7 +17,15 @@ class ProjectIdeaService {
     return ProjectIdea.create({ title: data.title, description: data.description, difficulty: data.difficulty, category: data.category, techStack: data.tech_stack || data.techStack || [], isCurated: data.is_curated ?? data.isCurated ?? false, tags: data.tags || [], createdById: userId });
   }
   async updateIdea(id, data) {
-    const idea = await ProjectIdea.update(id, { title: data.title, description: data.description, difficulty: data.difficulty, category: data.category, techStack: data.tech_stack, isCurated: data.is_curated, tags: data.tags });
+    const patch = {};
+    if (Object.hasOwn(data, 'title')) patch.title = data.title;
+    if (Object.hasOwn(data, 'description')) patch.description = data.description;
+    if (Object.hasOwn(data, 'difficulty')) patch.difficulty = data.difficulty;
+    if (Object.hasOwn(data, 'category')) patch.category = data.category;
+    if (Object.hasOwn(data, 'tech_stack')) patch.techStack = data.tech_stack;
+    if (Object.hasOwn(data, 'is_curated')) patch.isCurated = data.is_curated;
+    if (Object.hasOwn(data, 'tags')) patch.tags = data.tags;
+    const idea = await ProjectIdea.update(id, patch);
     if (!idea) throw new AppError('Project idea not found.', 404);
     return idea;
   }

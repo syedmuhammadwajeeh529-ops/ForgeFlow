@@ -76,7 +76,7 @@ class ProjectVersion {
         code,
         language,
         notes,
-        JSON.stringify(features),
+        Array.isArray(features) ? features.join('\n') : String(features || ''),
         createdById
       ]
     );

@@ -35,7 +35,7 @@ export const getGeneratedIdeaById = asyncHandler(async (req, res) => {
 
 export const createGeneratedIdea = asyncHandler(async (req, res) => {
   const idea = await GeneratedIdeaService.createGeneratedIdea(
-    req.body,
+    { ...req.body, techStack: req.body.tech_stack || req.body.techStack || [] },
     req.user.id
   );
 

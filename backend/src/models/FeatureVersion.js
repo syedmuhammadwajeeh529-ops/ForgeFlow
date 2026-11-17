@@ -65,7 +65,7 @@ class FeatureVersion {
         id,
         projectId,
         label,
-        JSON.stringify(features),
+        Array.isArray(features) ? features.join('\n') : String(features || ''),
         notes,
         createdById
       ]
@@ -85,7 +85,7 @@ class FeatureVersion {
 
     if (Object.hasOwn(data, 'features')) {
       fields.push('features = ?');
-      values.push(JSON.stringify(data.features));
+      values.push(Array.isArray(data.features) ? data.features.join('\n') : String(data.features || ''));
     }
 
     if (Object.hasOwn(data, 'notes')) {
