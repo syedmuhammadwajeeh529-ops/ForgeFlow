@@ -1,34 +1,24 @@
-
 import cors from 'cors';
 import { env } from './env.js';
 
-const allowedOrigins = [
+const allowedOrigins = new Set([
   env.frontendUrl,
   'http://localhost:5173',
   'http://127.0.0.1:5173'
-];
+]);
 
 const corsOptions = {
   origin(origin, callback) {
-    // Allow requests without an Origin header, such as server-to-server requests.
-    if (!origin || allowedOrigins.includes(origin)) {
-      return callback(null, true);
-    }
+    // Requests without Origin are typically server-to-server or local health checks.
+    if (!origin || allowedOrigins.has(origin)) return callback(null, true);
 
-    return callback(
-      new Error(`CORS blocked this origin: ${origin}`)
-    );
+    const error = new Error('This origin is not allowed by the ForgeFlow API.');
+    error.statusCode = 403;
+    return callback(error);
   },
-
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-
-  allowedHeaders: [
-    'Content-Type',
-    'Authorization'
-  ],
-
+  allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true,
-
   optionsSuccessStatus: 204
 };
 
