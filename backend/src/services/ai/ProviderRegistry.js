@@ -25,7 +25,13 @@ export const createProviders = (config) => {
       ? new OpenAICompatibleProvider({ id: 'openai', ...p.openai, timeoutMs }) : null
   };
 
-  return config.providerOrder.split(',')
-    .map((name) => definitions[name.trim().toLowerCase()])
+  const providerOrder = Array.isArray(config.providerOrder)
+    ? config.providerOrder
+    : String(config.providerOrder || 'openrouter,gemini,groq').split(',');
+
+  return providerOrder
+    .map((name) => String(name).trim().toLowerCase())
+    .filter(Boolean)
+    .map((name) => definitions[name])
     .filter(Boolean);
 };
