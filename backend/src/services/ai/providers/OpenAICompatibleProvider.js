@@ -37,7 +37,7 @@ export default class OpenAICompatibleProvider {
       const message = payload?.error?.message || payload?.message || 'Provider rejected the request.';
       throw new ProviderError(this.id, String(message).slice(0, 300), {
         status: response.status,
-        retryable: response.status !== 400 && response.status !== 404 && response.status !== 422
+        retryable: response.status !== 400 && response.status !== 422
       });
     }
 
