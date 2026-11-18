@@ -42,12 +42,12 @@ A provider is enabled when its API key is present. Model names and base URLs can
 Set the order in `AI_PROVIDER_ORDER`, for example:
 
 ```env
-AI_PROVIDER_ORDER=openrouter,gemini,groq,mistral,deepseek,openai
+AI_PROVIDER_ORDER=openrouter,gemini,groq,mistral
 AI_PROVIDER_TIMEOUT_MS=30000
 AI_PROVIDER_COOLDOWN_MS=60000
 ```
 
-Unconfigured providers are skipped. The orchestrator tries providers sequentially. It moves to the next provider for rate limits, authentication failures, temporary server errors, connection failures, timeouts, and invalid/empty JSON responses. Invalid request errors (400 and 422) are not retried across providers.
+Unconfigured providers are skipped. The default order contains OpenRouter, Gemini, Groq and Mistral. DeepSeek and OpenAI are also supported but are deliberately excluded from the default order because API usage can be paid. Add either one to the order only if you want to enable it. The orchestrator tries providers sequentially. It moves to the next provider for rate limits, authentication failures, temporary server errors, connection failures, timeouts, and invalid/empty JSON responses. Invalid request errors (400 and 422) are not retried across providers.
 
 A failed provider is temporarily cooled down. Once its cooldown expires, it is eligible again automatically. Cooldown state is in memory and resets when the backend process restarts. In a multi-instance production deployment, use a shared cache such as Redis for cross-instance circuit-breaker state.
 
