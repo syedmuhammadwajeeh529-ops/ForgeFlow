@@ -51,14 +51,11 @@ export default function SavedProjectCard({ project, onDelete, onOpen, index = 0 
                 {project.current_version}
               </span>
             )}
-            {project.tech_stack?.slice(0, 3).map((tech) => (
+            {project.tech_stack?.map((tech) => (
               <span key={tech} className="text-[11px] font-mono bg-muted text-muted-foreground px-2 py-0.5 rounded-md">
                 {tech}
               </span>
             ))}
-            {project.tech_stack?.length > 3 && (
-              <span className="text-[11px] text-muted-foreground">+{project.tech_stack.length - 3}</span>
-            )}
           </div>
         </div>
       </div>
