@@ -157,23 +157,24 @@ export default function Explore() {
     setDisplayedIdeas(getRandomFive(pool));
   };
 
-  useEffect(() => {
-    setAiIdeas(null);
-    setDisplayedIdeas(null);
-  }, [category]);
-
   const filteredIdeas = aiIdeas ?? displayedIdeas ?? defaultIdeas;
 
-  const generateAiIdeas = async (text) => {
-    if (!text.trim()) { setAiIdeas(null); return; }
+  const generateAiIdeas = async (text, pageCategory = null) => {
+    const categoryPrompt = pageCategory
+      ? pageCategory === 'All'
+        ? 'Generate exactly 5 fresh, distinct software project ideas across different categories. Do not reuse common catalogue ideas.'
+        : 'Generate exactly 5 fresh, distinct ' + pageCategory + ' software project ideas. Every idea must genuinely belong to the ' + pageCategory + ' category. Do not generate ideas for other categories and do not reuse common catalogue ideas.'
+      : null;
+    const generationPrompt = categoryPrompt || text.trim();
+    if (!generationPrompt) { setAiIdeas(null); return; }
     setAiGenerating(true);
     try {
     const result = await base44.integrations.Core.InvokeLLM({
-      prompt: `Generate exactly 5 distinct project idea variations based on this concept: "${text}".
-Each variation should be a specific, concrete take on the concept — like different implementations, board sizes, modes, mechanics, or scopes. For example, if the input is "tic tac toe game", generate variations like: 3x3 classic, 4x4 extended, 5x5 strategy, AI opponent, multiplayer online, etc.
-If it's "todo app", generate: minimalist CLI todo, drag-and-drop web todo, team collaborative todo, voice-input todo, gamified todo with streaks.
-Always stay true to the exact concept typed — do NOT change it to a different domain or category.
-Return JSON array of 5 objects.`,
+      prompt: categoryPrompt || (
+        'Generate exactly 5 distinct project idea variations based on this concept: "' + text + '".\n' +
+        'Each variation should be a specific, concrete take on the concept, with different implementations, modes, mechanics, or scopes.\n' +
+        'Always stay true to the exact concept typed and do not change it to a different domain or category. Return exactly 5 objects.'
+      ),
       response_json_schema: {
         type: 'object',
         properties: {
@@ -194,7 +195,15 @@ Return JSON array of 5 objects.`,
         },
       },
     });
-    let ideas = (result.ideas || []).map((idea) => ({ ...idea, is_curated: false }));
+    const generated = Array.isArray(result.ideas) ? result.ideas.slice(0, 5) : [];
+    if (generated.length !== 5) {
+      throw new Error('The AI provider did not return exactly 5 ideas. Please try again.');
+    }
+    let ideas = generated.map((idea) => ({
+      ...idea,
+      ...(pageCategory && pageCategory !== 'All' ? { category: pageCategory } : {}),
+      is_curated: false,
+    }));
     if (isAuthenticated) {
       const created = await base44.entities.GeneratedIdea.bulkCreate(
         ideas.map((idea) => ({
@@ -204,7 +213,7 @@ Return JSON array of 5 objects.`,
           category: idea.category,
           tech_stack: idea.tech_stack || [],
           tags: idea.tags || [],
-          prompt: text,
+          prompt: generationPrompt,
         }))
       );
       ideas = ideas.map((idea, i) => ({ ...idea, id: created[i]?.id || `generated-${i}` }));
@@ -219,6 +228,15 @@ Return JSON array of 5 objects.`,
     }
   };
 
+  const pageGenerationKeyRef = useRef(null);
+
+  useEffect(() => {
+    if (pageGenerationKeyRef.current === category) return;
+    pageGenerationKeyRef.current = category;
+    setAiIdeas(null);
+    setDisplayedIdeas(null);
+    generateAiIdeas('', category);
+  }, [category]);
   const togglePlannerMic = () => {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SpeechRecognition) { alert('Speech recognition not supported in your browser. Try Chrome.'); return; }
