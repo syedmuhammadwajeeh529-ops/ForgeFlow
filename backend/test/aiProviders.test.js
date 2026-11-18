@@ -5,7 +5,8 @@ import { ProviderError } from '../src/services/ai/ProviderError.js';
 
 test('AI response parser accepts plain JSON and fenced JSON objects', () => {
   assert.deepEqual(parseJsonObject('{"name":"ForgeFlow"}'), { name: 'ForgeFlow' });
-  assert.deepEqual(parseJsonObject('''' + '```json\n{"name":"ForgeFlow"}\n```'), { name: 'ForgeFlow' });
+  const fence = String.fromCharCode(96).repeat(3);
+  assert.deepEqual(parseJsonObject(fence + 'json\\n{"name":"ForgeFlow"}\\n' + fence), { name: 'ForgeFlow' });
 });
 
 test('AI response parser rejects arrays and malformed JSON', () => {
