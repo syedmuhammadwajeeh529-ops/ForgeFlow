@@ -31,7 +31,7 @@ export default class AIOrchestrator {
     }
 
     const schemaInstruction = responseJsonSchema
-      ? `\\n\\nReturn a JSON object that conforms to this schema:\\n${JSON.stringify(responseJsonSchema)}`
+      ? `\n\nReturn a JSON object that conforms to this schema:\n${JSON.stringify(responseJsonSchema)}`
       : '';
     const attempted = [];
     let lastError;
