@@ -84,7 +84,7 @@ export default function Explore() {
   const navigate = useNavigate();
   const location = useLocation();
   const queryClient = useQueryClient();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
 
   const category = new URLSearchParams(location.search).get('category') || 'All';
 
@@ -95,7 +95,7 @@ export default function Explore() {
   });
 
   const { data: savedProjects = [] } = useQuery({
-    queryKey: ['saved-projects'],
+    queryKey: ['saved-projects', user?.id],
     queryFn: () => base44.entities.SavedProject.list('-updated_date', 100),
     enabled: isAuthenticated,
   });
