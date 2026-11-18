@@ -84,18 +84,18 @@ export default function Explore() {
   const navigate = useNavigate();
   const location = useLocation();
   const queryClient = useQueryClient();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
 
   const category = new URLSearchParams(location.search).get('category') || 'All';
 
   const { data: ideas = [], isLoading } = useQuery({
     queryKey: ['project-ideas'],
     queryFn: () => base44.entities.ProjectIdea.list('-created_date', 100),
-    enabled: isAuthenticated,
+    enabled: true,
   });
 
   const { data: savedProjects = [] } = useQuery({
-    queryKey: ['saved-projects'],
+    queryKey: ['saved-projects', user?.id],
     queryFn: () => base44.entities.SavedProject.list('-updated_date', 100),
     enabled: isAuthenticated,
   });
@@ -119,9 +119,12 @@ export default function Explore() {
       queryClient.invalidateQueries({ queryKey: ['saved-projects'] });
       toast({ title: 'Project saved!', description: 'Find it in My Projects.' });
     },
+    onError: (error) => {
+      toast({ title: 'Could not save project', description: error.message || 'Please try again.', variant: 'destructive' });
+    },
   });
 
-  const allIdeas = [...ideas, ...SOFTWARE_IDEAS];
+  const allIdeas = ideas.length ? ideas : SOFTWARE_IDEAS;
 
   const getRandomFive = (pool) => {
     return [...pool].sort(() => Math.random() - 0.5).slice(0, 5);
@@ -130,7 +133,7 @@ export default function Explore() {
   const defaultIdeas = useCallback(() => {
     const categoryPool = allIdeas.filter(idea => category === 'All' || idea.category === category);
     return getRandomFive(categoryPool);
-  }, [ideas.length, seed, category])();
+  }, [ideas, seed, category])();
 
   const extractDifficulty = (text) => {
     const lower = text.toLowerCase();
@@ -141,16 +144,23 @@ export default function Explore() {
   };
 
   const handleSearch = () => {
+    setAiIdeas(null);
     const difficulty = extractDifficulty(search);
     const pool = allIdeas.filter(idea => {
       const matchCategory = category === 'All' || idea.category === category;
       const matchDifficulty = !difficulty || idea.difficulty === difficulty;
       const cleanSearch = search.replace(/projects?\s+for\s+/i, '').replace(/beginner|intermediate|advanced|easy|medium|hard|simple|expert/gi, '').trim();
-      const matchSearch = !cleanSearch || idea.title?.toLowerCase().includes(cleanSearch.toLowerCase()) || idea.description?.toLowerCase().includes(cleanSearch.toLowerCase());
+      const searchable = [idea.title, idea.description, ...(idea.tags || []), ...(idea.tech_stack || [])].join(' ').toLowerCase();
+      const matchSearch = !cleanSearch || searchable.includes(cleanSearch.toLowerCase());
       return matchCategory && matchDifficulty && matchSearch;
     });
     setDisplayedIdeas(getRandomFive(pool));
   };
+
+  useEffect(() => {
+    setAiIdeas(null);
+    setDisplayedIdeas(null);
+  }, [category]);
 
   const filteredIdeas = aiIdeas ?? displayedIdeas ?? defaultIdeas;
 
@@ -261,12 +271,12 @@ Return JSON array of 5 objects.`,
       </div>
 
       {/* Filters */}
-      <FiltersBar search={search} setSearch={(v) => { setSearch(v); setDisplayedIdeas(null); }} onSearch={handleSearch} />
+      <FiltersBar search={search} setSearch={(v) => { setSearch(v); setDisplayedIdeas(null); setAiIdeas(null); }} onSearch={handleSearch} />
 
       {/* Shuffle button */}
       <div className="mb-6 flex justify-center">
         <Button
-          onClick={() => { setDisplayedIdeas(null); setSeed(Math.random()); }}
+          onClick={() => { setDisplayedIdeas(null); setAiIdeas(null); setSeed(Math.random()); }}
           className="gap-2 bg-green-500 hover:bg-green-600 text-white shadow-md shadow-green-200"
         >
           <Shuffle className="w-4 h-4" />
@@ -330,7 +340,7 @@ Return JSON array of 5 objects.`,
           <p className="text-sm mt-1">Try different keywords or shuffle for new ideas.</p>
         </div>
       ) : (
-        <div className="grid gap-3" style={{ gridTemplateColumns: '1fr' }}>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {filteredIdeas.map((idea, i) => {
             const saved = savedProjects.find(p => p.idea_id === idea.id || p.title === idea.title);
             return (

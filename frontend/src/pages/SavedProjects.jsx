@@ -11,10 +11,10 @@ export default function SavedProjects() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
 
   const { data: projects = [], isLoading } = useQuery({
-    queryKey: ['saved-projects'],
+    queryKey: ['saved-projects', user?.id],
     queryFn: () => base44.entities.SavedProject.list('-updated_date', 50),
     enabled: isAuthenticated,
   });
@@ -24,6 +24,9 @@ export default function SavedProjects() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['saved-projects'] });
       toast({ title: 'Project removed' });
+    },
+    onError: (error) => {
+      toast({ title: 'Could not remove project', description: error.message || 'Please try again.', variant: 'destructive' });
     },
   });
 
