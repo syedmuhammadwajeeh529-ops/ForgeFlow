@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
@@ -14,8 +15,9 @@ test('ForgeFlow API integration: authentication, ownership, projects, versions a
   process.env.DB_HOST ||= '127.0.0.1';
   process.env.DB_PORT ||= '3306';
   process.env.DB_USER ||= 'root';
-  process.env.DB_PASSWORD ??= 'root';
-  process.env.DB_NAME ||= 'forgeflow';
+  process.env.DB_PASSWORD ||= '';
+  // Integration tests must never touch the developer's normal ForgeFlow database.
+  process.env.DB_NAME = 'forgeflow_test';
   process.env.JWT_SECRET ||= 'forgeflow-integration-test-secret-at-least-32-characters';
   process.env.FRONTEND_URL ||= 'http://localhost:5173';
   delete process.env.AI_API_KEY;
@@ -31,8 +33,9 @@ test('ForgeFlow API integration: authentication, ownership, projects, versions a
   let pool;
   try {
     const schemaPath = fileURLToPath(new URL('../database/schema.sql', import.meta.url));
-    await connection.query(await readFile(schemaPath, 'utf8'));
-    await connection.query('USE forgeflow');
+    const schema = (await readFile(schemaPath, 'utf8')).replaceAll('forgeflow', 'forgeflow_test');
+    await connection.query(schema);
+    await connection.query('USE forgeflow_test');
     await connection.query(`
       SET FOREIGN_KEY_CHECKS = 0;
       TRUNCATE TABLE feature_versions;
