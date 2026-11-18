@@ -7,6 +7,15 @@ import FeatureBullets from '@/components/projects/FeatureBullets';
 import { difficultyColors } from '@/lib/projectStyles';
 
 export default function IdeaDetailModal({ idea, open, onClose, onSave, isSaving }) {
+  const handleSave = async () => {
+    try {
+      await onSave(idea);
+      onClose();
+    } catch {
+      // The parent displays the save error; keep the dialog open for another attempt.
+    }
+  };
+
   if (!idea) return null;
 
   return (
@@ -46,7 +55,7 @@ export default function IdeaDetailModal({ idea, open, onClose, onSave, isSaving 
           <ProjectActions idea={idea} />
 
           <Button
-            onClick={() => { onSave(idea); onClose(); }}
+            onClick={handleSave}
             disabled={isSaving}
             className="w-full gap-2 bg-primary hover:bg-primary/90"
           >
