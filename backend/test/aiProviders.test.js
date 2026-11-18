@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import AIOrchestrator, { parseJsonObject } from '../src/services/ai/AIOrchestrator.js';
 import { ProviderError } from '../src/services/ai/ProviderError.js';
+import { createProviders } from '../src/services/ai/ProviderRegistry.js';
 
 test('AI response parser accepts plain JSON and fenced JSON objects', () => {
   assert.deepEqual(parseJsonObject('{"name":"ForgeFlow"}'), { name: 'ForgeFlow' });
@@ -72,4 +73,30 @@ test('AI orchestrator cools down a provider that has just failed', async () => {
   now += 6000;
   await orchestrator.generate({ prompt: 'third request' });
   assert.equal(primaryCalls, 2);
+});
+
+
+test('provider registry accepts provider order as an array or comma-separated string', () => {
+  const providers = {
+    openrouter: { apiKey: 'test-key', model: 'test-model', baseUrl: 'https://example.com/v1' },
+    gemini: { apiKey: '', model: 'test-model' },
+    groq: { apiKey: '', model: 'test-model' },
+    mistral: { apiKey: '', model: 'test-model' },
+    deepseek: { apiKey: '', model: 'test-model' },
+    openai: { apiKey: '', model: 'test-model' }
+  };
+
+  const fromArray = createProviders({
+    providerOrder: ['openrouter'],
+    timeoutMs: 1000,
+    providers
+  });
+  const fromString = createProviders({
+    providerOrder: 'openrouter',
+    timeoutMs: 1000,
+    providers
+  });
+
+  assert.deepEqual(fromArray.map((provider) => provider.id), ['openrouter']);
+  assert.deepEqual(fromString.map((provider) => provider.id), ['openrouter']);
 });
