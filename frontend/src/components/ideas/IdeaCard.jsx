@@ -17,7 +17,7 @@ export default function IdeaCard({ idea, savedProject = null, onSave, onOpen, in
     >
       {/* Square save control — top right */}
       <button
-        onClick={(e) => { e.stopPropagation(); if (!isSaved) onSave(idea); }}
+        onClick={async (e) => { e.stopPropagation(); if (!isSaved) { try { await onSave(idea); } catch {} } }}
         disabled={isSaving || isSaved}
         title={isSaved ? 'Saved in My Projects' : 'Save project'}
         aria-label="Save project"
