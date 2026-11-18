@@ -80,9 +80,7 @@ test('provider registry accepts provider order as an array or comma-separated st
   const providers = {
     openrouter: { apiKey: 'test-key', model: 'test-model', baseUrl: 'https://example.com/v1' },
     gemini: { apiKey: '', model: 'test-model' },
-    groq: { apiKey: '', model: 'test-model' },
-    deepseek: { apiKey: '', model: 'test-model' },
-    openai: { apiKey: '', model: 'test-model' }
+    groq: { apiKey: '', model: 'test-model' }
   };
 
   const fromArray = createProviders({
