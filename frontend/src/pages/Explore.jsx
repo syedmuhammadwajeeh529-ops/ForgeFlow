@@ -91,7 +91,7 @@ export default function Explore() {
   const { data: ideas = [], isLoading } = useQuery({
     queryKey: ['project-ideas'],
     queryFn: () => base44.entities.ProjectIdea.list('-created_date', 100),
-    enabled: isAuthenticated,
+    enabled: true,
   });
 
   const { data: savedProjects = [] } = useQuery({
@@ -121,7 +121,7 @@ export default function Explore() {
     },
   });
 
-  const allIdeas = [...ideas, ...SOFTWARE_IDEAS];
+  const allIdeas = ideas.length ? ideas : SOFTWARE_IDEAS;
 
   const getRandomFive = (pool) => {
     return [...pool].sort(() => Math.random() - 0.5).slice(0, 5);
