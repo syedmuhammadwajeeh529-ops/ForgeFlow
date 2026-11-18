@@ -47,7 +47,7 @@ AI_PROVIDER_TIMEOUT_MS=30000
 AI_PROVIDER_COOLDOWN_MS=60000
 ```
 
-Unconfigured providers are skipped. The orchestrator tries providers sequentially. It moves to the next provider for rate limits, authentication failures, temporary server errors, connection failures, timeouts, and invalid/empty JSON responses. Invalid request errors (400, 404, 422) are not retried across providers.
+Unconfigured providers are skipped. The orchestrator tries providers sequentially. It moves to the next provider for rate limits, authentication failures, temporary server errors, connection failures, timeouts, and invalid/empty JSON responses. Invalid request errors (400 and 422) are not retried across providers.
 
 A failed provider is temporarily cooled down. Once its cooldown expires, it is eligible again automatically. Cooldown state is in memory and resets when the backend process restarts. In a multi-instance production deployment, use a shared cache such as Redis for cross-instance circuit-breaker state.
 
@@ -67,8 +67,7 @@ All TinyFish endpoints require `TINYFISH_API_KEY` in the backend environment.
 
 ```json
 {
-  "query": "current JavaScript framework releases",
-  "limit": 10
+  "query": "current JavaScript framework releases"
 }
 ```
 
@@ -103,7 +102,7 @@ TinyFish Fetch accepts 1 to 10 URLs per request. Supported formats are `markdown
 }
 ```
 
-Browser automation can take longer than an ordinary AI completion. The backend gives this operation a longer request timeout. TinyFish usage limits and billing are controlled by TinyFish, not by ForgeFlow.
+Search and Fetch are currently offered free by TinyFish subject to its published rate limits. Browser-agent automation has separate usage limits and may require paid credits. Browser automation can take longer than an ordinary AI completion, so the backend gives this operation a longer request timeout.
 
 ## 3. Local key setup
 
