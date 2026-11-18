@@ -62,14 +62,11 @@ export default function IdeaCard({ idea, savedProject = null, onSave, onOpen, in
             <Badge variant="outline" className={`text-xs ${categoryColors[idea.category] || 'bg-purple-100 text-purple-700'}`}>
               {idea.category}
             </Badge>
-            {idea.tech_stack?.slice(0, 3).map((tech) => (
+            {idea.tech_stack?.map((tech) => (
               <span key={tech} className="text-[11px] font-mono bg-muted text-muted-foreground px-2 py-0.5 rounded-md">
                 {tech}
               </span>
             ))}
-            {idea.tech_stack?.length > 3 && (
-              <span className="text-[11px] text-muted-foreground">+{idea.tech_stack.length - 3}</span>
-            )}
           </div>
         </div>
       </div>
