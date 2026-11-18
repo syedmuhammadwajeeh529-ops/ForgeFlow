@@ -22,7 +22,6 @@ export default class OpenAICompatibleProvider {
             { role: 'system', content: systemPrompt },
             { role: 'user', content: `${prompt}${schemaInstruction}` }
           ],
-          response_format: { type: 'json_object' }
         }),
         signal: AbortSignal.timeout(this.timeoutMs)
       });
