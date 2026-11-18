@@ -14,6 +14,13 @@ process.env.DB_USER ||= 'root';
 process.env.DB_PASSWORD ||= '';
 process.env.DB_NAME ||= 'forgeflow';
 process.env.JWT_SECRET ||= 'test-only-secret-that-is-at-least-32-characters-long';
+process.env.AI_API_KEY = '';
+process.env.OPENROUTER_API_KEY = '';
+process.env.GEMINI_API_KEY = '';
+process.env.GROQ_API_KEY = '';
+process.env.MISTRAL_API_KEY = '';
+process.env.DEEPSEEK_API_KEY = '';
+process.env.OPENAI_API_KEY = '';
 
 const { default: app } = await import('../src/app.js');
 const { default: pool } = await import('../src/config/database.js');
