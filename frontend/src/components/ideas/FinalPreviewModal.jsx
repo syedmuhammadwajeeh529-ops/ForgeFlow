@@ -141,9 +141,11 @@ For Game projects use pages "Main Menu", "Play" and "Leaderboard", and make the 
       cache[idea.id || idea.title] = result;
       setData(result);
     } catch (e) {
-      setError('Could not generate the preview. Please try again.');
+      console.error('Final preview generation failed:', e);
+      setError(e?.message || 'Could not generate the preview. Please try again.');
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   const srcDoc = useMemo(() => (data ? buildDocument(data) : ''), [data]);
