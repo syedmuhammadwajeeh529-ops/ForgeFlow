@@ -7,7 +7,7 @@ export function AuthProvider({children}){
  useEffect(()=>{checkAppState()},[]);
  const login=async credentials=>{const result=await apiRequest('/auth/login',{method:'POST',body:credentials});setToken(result.token);setUser(result.user);setAuthError(null);return result.user};
  const register=async details=>{const result=await apiRequest('/auth/register',{method:'POST',body:details});setToken(result.token);setUser(result.user);setAuthError(null);return result.user};
- const logout=()=>{setToken(null);setUser(null);window.location.assign('/login')};const navigateToLogin=()=>base44.auth.redirectToLogin();
+ const logout=async()=>{try{await base44.auth.logout()}catch{}finally{setToken(null);setUser(null);window.location.assign('/login')}};const navigateToLogin=()=>base44.auth.redirectToLogin();
  return <AuthContext.Provider value={{user,isAuthenticated:!!user,isLoadingAuth,isLoadingPublicSettings:false,authError,appPublicSettings,logout,navigateToLogin,checkAppState,login,register}}>{children}</AuthContext.Provider>
 }
 export function useAuth(){const value=useContext(AuthContext);if(!value)throw new Error('useAuth must be used within an AuthProvider');return value}
