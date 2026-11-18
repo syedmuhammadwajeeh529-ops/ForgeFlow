@@ -54,11 +54,6 @@ export const env = {
         baseUrl: process.env.GROQ_BASE_URL || 'https://api.groq.com/openai/v1',
         model: process.env.GROQ_MODEL || 'openai/gpt-oss-20b'
       },
-      mistral: {
-        apiKey: process.env.MISTRAL_API_KEY || '',
-        baseUrl: process.env.MISTRAL_BASE_URL || 'https://api.mistral.ai/v1',
-        model: process.env.MISTRAL_MODEL || 'mistral-small-latest'
-      },
       deepseek: {
         apiKey: process.env.DEEPSEEK_API_KEY || '',
         baseUrl: process.env.DEEPSEEK_BASE_URL || 'https://api.deepseek.com',
