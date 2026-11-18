@@ -21,6 +21,12 @@ test('ForgeFlow API integration: authentication, ownership, projects, versions a
   process.env.JWT_SECRET ||= 'forgeflow-integration-test-secret-at-least-32-characters';
   process.env.FRONTEND_URL ||= 'http://localhost:5173';
   delete process.env.AI_API_KEY;
+  process.env.OPENROUTER_API_KEY = '';
+  process.env.GEMINI_API_KEY = '';
+  process.env.GROQ_API_KEY = '';
+  process.env.MISTRAL_API_KEY = '';
+  process.env.DEEPSEEK_API_KEY = '';
+  process.env.OPENAI_API_KEY = '';
 
   const connection = await mysql.createConnection({
     host: process.env.DB_HOST,

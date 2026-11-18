@@ -43,6 +43,11 @@ jobs:
         run: npm install
       - name: Check backend JavaScript syntax
         run: find backend/src backend/test -name '*.js' -print0 | xargs -0 -n1 node --check
+      - name: Initialize CI database
+        run: |
+          mysql --host 127.0.0.1 --port 3306 --user root --password=root < backend/database/schema.sql
+          mysql --host 127.0.0.1 --port 3306 --user root --password=root < backend/database/seed.sql
+
       - name: Run backend unit and MySQL integration tests
         run: npm test --workspace backend
       - name: Build frontend
