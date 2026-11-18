@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import test, { after } from 'node:test';
 import assert from 'node:assert/strict';
 import { randomUUID } from 'node:crypto';
@@ -10,7 +11,7 @@ process.env.FRONTEND_URL ||= 'http://localhost:5173';
 process.env.DB_HOST ||= '127.0.0.1';
 process.env.DB_PORT ||= '3306';
 process.env.DB_USER ||= 'root';
-process.env.DB_PASSWORD ??= '';
+process.env.DB_PASSWORD ||= '';
 process.env.DB_NAME ||= 'forgeflow';
 process.env.JWT_SECRET ||= 'test-only-secret-that-is-at-least-32-characters-long';
 
