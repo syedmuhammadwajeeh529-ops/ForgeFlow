@@ -31,10 +31,8 @@ The response data remains the generated JSON object, so the frontend does not ne
 | OpenRouter | `OPENROUTER_API_KEY` | `openrouter/free` |
 | Gemini | `GEMINI_API_KEY` | `gemini-2.5-flash` |
 | Groq | `GROQ_API_KEY` | `openai/gpt-oss-20b` |
-| DeepSeek | `DEEPSEEK_API_KEY` | `deepseek-chat` |
-| OpenAI / compatible | `OPENAI_API_KEY` | `gpt-4o-mini` |
 
-A provider is enabled when its API key is present. Model names and base URLs can be overridden in `backend/.env`. OpenRouter's free model availability and provider quotas can change; choose a currently available model if the `openrouter/free` alias is unavailable for your account.
+A provider is enabled when its API key is present. Model names and base URLs can be overridden in `backend/.env`. OpenRouter's free model availability and provider quotas can change; choose a currently available free model if the `openrouter/free` alias is unavailable for your account.
 
 ### Provider order and fallback
 
@@ -46,13 +44,9 @@ AI_PROVIDER_TIMEOUT_MS=30000
 AI_PROVIDER_COOLDOWN_MS=60000
 ```
 
-Unconfigured providers are skipped. The default order contains OpenRouter, Gemini and Groq. DeepSeek and OpenAI are supported but deliberately excluded from the default order because API usage may require paid credits. Add either to the order only if you want to enable it. The orchestrator tries providers sequentially. It moves to the next provider for rate limits, authentication failures, temporary server errors, connection failures, timeouts, and invalid/empty JSON responses. Invalid request errors (400 and 422) are not retried across providers.
+Unconfigured providers are skipped. The default order contains OpenRouter, Gemini and Groq. The orchestrator tries configured providers sequentially. It moves to the next provider for rate limits, authentication failures, temporary server errors, connection failures, timeouts, and invalid/empty JSON responses. Invalid request errors (400 and 422) are not retried across providers.
 
 A failed provider is temporarily cooled down. Once its cooldown expires, it is eligible again automatically. Cooldown state is in memory and resets when the backend process restarts. In a multi-instance production deployment, use a shared cache such as Redis for cross-instance circuit-breaker state.
-
-### Legacy configuration
-
-The previous `AI_API_KEY`, `AI_BASE_URL`, and `AI_MODEL` variables remain supported as aliases for the OpenAI-compatible provider.
 
 ## 2. Local key setup
 
