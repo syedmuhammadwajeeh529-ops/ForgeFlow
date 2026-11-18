@@ -2,7 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { BookMarked, Loader2, LogIn } from 'lucide-react';
+import { Loader2, LogIn } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { useAuth } from '@/lib/AuthContext';
 import SavedProjectCard from '@/components/projects/SavedProjectCard';
@@ -33,7 +33,7 @@ export default function SavedProjects() {
   if (!isAuthenticated) {
     return (
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 text-center">
-        <BookMarked className="w-12 h-12 text-muted-foreground/30 mx-auto mb-4" />
+        <img src="/favicon.svg" alt="ForgeFlow" className="w-14 h-14 mx-auto mb-4" />
         <p className="text-lg font-semibold">Sign up to keep your projects</p>
         <p className="text-sm text-muted-foreground mt-1 mb-5">
           Saved projects are linked to your account, so they are waiting for you when you come back.
@@ -60,7 +60,7 @@ export default function SavedProjects() {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="mb-8">
         <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight flex items-center gap-3">
-          <BookMarked className="w-7 h-7 text-primary" />
+          <img src="/favicon.svg" alt="" aria-hidden="true" className="w-9 h-9 shrink-0" />
           My Projects
         </h1>
         <p className="text-muted-foreground text-base mt-1">
@@ -70,7 +70,7 @@ export default function SavedProjects() {
 
       {projects.length === 0 ? (
         <div className="text-center py-24">
-          <BookMarked className="w-12 h-12 text-muted-foreground/30 mx-auto mb-4" />
+          <img src="/favicon.svg" alt="" aria-hidden="true" className="w-14 h-14 mx-auto mb-4" />
           <p className="text-lg font-medium text-muted-foreground">No saved projects yet</p>
           <p className="text-sm text-muted-foreground mt-1">Go explore ideas and save ones you like!</p>
           <Button onClick={() => navigate('/')} className="mt-4 bg-primary hover:bg-primary/90">
