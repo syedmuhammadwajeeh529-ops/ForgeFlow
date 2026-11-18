@@ -12,8 +12,6 @@ const validHttpUrl = (value) => {
 export const searchWebValidator = [
   body('query').isString().trim().isLength({ min: 2, max: 500 })
     .withMessage('Search query must be between 2 and 500 characters.'),
-  body('limit').optional().isInt({ min: 1, max: 20 })
-    .withMessage('Search limit must be between 1 and 20.')
 ];
 
 export const fetchUrlsValidator = [
