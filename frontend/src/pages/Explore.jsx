@@ -119,6 +119,9 @@ export default function Explore() {
       queryClient.invalidateQueries({ queryKey: ['saved-projects'] });
       toast({ title: 'Project saved!', description: 'Find it in My Projects.' });
     },
+    onError: (error) => {
+      toast({ title: 'Could not save project', description: error.message || 'Please try again.', variant: 'destructive' });
+    },
   });
 
   const allIdeas = ideas.length ? ideas : SOFTWARE_IDEAS;
