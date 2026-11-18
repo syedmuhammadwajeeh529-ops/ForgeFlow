@@ -108,6 +108,12 @@ test('regular users cannot create curated catalogue entries', async () => {
 
 test('AI endpoint reports a clear configuration error when no provider key exists', async () => {
   process.env.AI_API_KEY = '';
+  process.env.OPENROUTER_API_KEY = '';
+  process.env.GEMINI_API_KEY = '';
+  process.env.GROQ_API_KEY = '';
+  process.env.MISTRAL_API_KEY = '';
+  process.env.DEEPSEEK_API_KEY = '';
+  process.env.OPENAI_API_KEY = '';
   const response = await request(app)
     .post('/api/ai/generate')
     .send({ prompt: 'Generate a small web app idea.' });
