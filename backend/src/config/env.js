@@ -12,7 +12,7 @@ if (process.env.JWT_SECRET.length < 32) {
   throw new Error('JWT_SECRET must be at least 32 characters long.');
 }
 
-const providerOrder = (process.env.AI_PROVIDER_ORDER || 'openrouter,gemini,groq')
+const providerOrder = (process.env.AI_PROVIDER_ORDER || 'openrouter,groq')
   .split(',')
   .map((provider) => provider.trim().toLowerCase())
   .filter(Boolean);
@@ -44,10 +44,6 @@ export const env = {
         model: process.env.OPENROUTER_MODEL || 'openrouter/free',
         siteUrl: process.env.OPENROUTER_SITE_URL || '',
         appName: process.env.OPENROUTER_APP_NAME || 'ForgeFlow'
-      },
-      gemini: {
-        apiKey: process.env.GEMINI_API_KEY || '',
-        model: process.env.GEMINI_MODEL || 'gemini-2.5-flash'
       },
       groq: {
         apiKey: process.env.GROQ_API_KEY || '',
