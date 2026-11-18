@@ -21,7 +21,6 @@ process.env.GROQ_API_KEY = '';
 process.env.MISTRAL_API_KEY = '';
 process.env.DEEPSEEK_API_KEY = '';
 process.env.OPENAI_API_KEY = '';
-process.env.TINYFISH_API_KEY = '';
 
 const { default: app } = await import('../src/app.js');
 const { default: pool } = await import('../src/config/database.js');
@@ -127,14 +126,6 @@ test('AI endpoint reports a clear configuration error when no provider key exist
     .send({ prompt: 'Generate a small web app idea.' });
   assert.equal(response.status, 503);
   assert.match(response.body.message, /AI generation is not configured/);
-});
-
-test('TinyFish web endpoints report a clear configuration error without an API key', async () => {
-  const response = await request(app)
-    .post('/api/web/search')
-    .send({ query: 'ForgeFlow test' });
-  assert.equal(response.status, 503);
-  assert.match(response.body.message, /TinyFish is not configured/);
 });
 
 test('authenticated profile endpoint reloads the current user', async () => {
