@@ -35,10 +35,9 @@ const tinyFishRequest = async (url, options = {}, timeoutMs = 90000) => {
   return payload;
 };
 
-export const searchWeb = async ({ query, limit }) => {
+export const searchWeb = async ({ query }) => {
   const url = new URL(SEARCH_URL);
   url.searchParams.set('query', query);
-  if (limit) url.searchParams.set('limit', String(limit));
   return tinyFishRequest(url, { method: 'GET' });
 };
 
