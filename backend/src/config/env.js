@@ -53,16 +53,6 @@ export const env = {
         apiKey: process.env.GROQ_API_KEY || '',
         baseUrl: process.env.GROQ_BASE_URL || 'https://api.groq.com/openai/v1',
         model: process.env.GROQ_MODEL || 'openai/gpt-oss-20b'
-      },
-      deepseek: {
-        apiKey: process.env.DEEPSEEK_API_KEY || '',
-        baseUrl: process.env.DEEPSEEK_BASE_URL || 'https://api.deepseek.com',
-        model: process.env.DEEPSEEK_MODEL || 'deepseek-chat'
-      },
-      openai: {
-        apiKey: process.env.OPENAI_API_KEY || process.env.AI_API_KEY || '',
-        baseUrl: process.env.OPENAI_BASE_URL || process.env.AI_BASE_URL || 'https://api.openai.com/v1',
-        model: process.env.OPENAI_MODEL || process.env.AI_MODEL || 'gpt-4o-mini'
       }
     }
   }
