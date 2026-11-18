@@ -8,6 +8,7 @@ import generatedIdeaRoutes from './routes/generatedIdeaRoutes.js';
 import savedProjectRoutes from './routes/savedProjectRoutes.js';
 import versionRoutes from './routes/versionRoutes.js';
 import aiRoutes from './routes/aiRoutes.js';
+import tinyFishRoutes from './routes/tinyFishRoutes.js';
 import { notFound } from './middleware/notFound.js';
 import { errorHandler } from './middleware/errorHandler.js';
 
@@ -26,6 +27,7 @@ app.use('/api/saved-projects', savedProjectRoutes);
 app.use('/api/project-versions', versionRoutes.projectVersions);
 app.use('/api/feature-versions', versionRoutes.featureVersions);
 app.use('/api/ai', aiRoutes);
+app.use('/api/web', tinyFishRoutes);
 app.use(notFound);
 app.use(errorHandler);
 export default app;
