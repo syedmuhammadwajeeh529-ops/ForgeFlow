@@ -31,8 +31,6 @@ The frontend runs at http://localhost:5173 and the API at http://localhost:5000.
 ## AI generation and provider failover
 ForgeFlow keeps the existing `POST /api/ai/generate` endpoint and response contract. The backend can route requests through OpenRouter, Gemini, Groq, Mistral, DeepSeek, and OpenAI-compatible endpoints. Providers are attempted in the order configured by `AI_PROVIDER_ORDER`; providers without keys are skipped. Rate limits, temporary outages, timeouts, invalid credentials, and malformed provider responses trigger fallback to the next configured provider. A provider that fails is temporarily cooled down and automatically becomes eligible again after the cooldown.
 
-TinyFish is integrated separately for web search, page fetching, and browser automation. It is not treated as a chat-completion fallback because it performs a different job.
-
 Copy the new variables from `backend/.env.example` into your local `backend/.env`. See [AI provider setup](docs/AI_PROVIDERS.md) for provider order, model settings, API routes, and key setup. Never commit real keys.
 
 ## Security notes
