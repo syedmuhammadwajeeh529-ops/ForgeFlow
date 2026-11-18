@@ -8,19 +8,15 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
 } from '@/components/ui/dropdown-menu';
-import { ChevronDown, MousePointerClick, Eye, GitBranch, Pencil, ListTree } from 'lucide-react';
-import FinalPreviewModal from '@/components/ideas/FinalPreviewModal';
+import { ChevronDown, MousePointerClick, GitBranch, Pencil, ListTree } from 'lucide-react';
 import PrototypeModal from '@/components/ideas/PrototypeModal';
 import FeatureHistoryModal from '@/components/versions/FeatureHistoryModal';
 import ProjectVersionsModal from '@/components/versions/ProjectVersionsModal';
-import { FINAL_PREVIEW_CATEGORIES } from '@/lib/projectStyles';
 
 export default function ProjectActions({ idea, project = null }) {
   const { isAuthenticated } = useAuth();
   const [tryMode, setTryMode] = useState(null);
   const [versionsMode, setVersionsMode] = useState(null);
-
-  const canPreview = FINAL_PREVIEW_CATEGORIES.includes(idea.category);
 
   const withAccount = (action) => () => {
     if (!isAuthenticated) {
@@ -48,11 +44,6 @@ export default function ProjectActions({ idea, project = null }) {
             <DropdownMenuItem className="text-xs gap-2" onClick={withAccount(() => setTryMode('prototype'))}>
               <MousePointerClick className="w-3.5 h-3.5 text-primary" /> Try it
             </DropdownMenuItem>
-            {canPreview && (
-              <DropdownMenuItem className="text-xs gap-2" onClick={withAccount(() => setTryMode('preview'))}>
-                <Eye className="w-3.5 h-3.5 text-primary" /> Preview
-              </DropdownMenuItem>
-            )}
           </DropdownMenuContent>
         </DropdownMenu>
 
@@ -86,9 +77,6 @@ export default function ProjectActions({ idea, project = null }) {
         </DropdownMenu>
       </div>
 
-      {canPreview && (
-        <FinalPreviewModal idea={idea} open={tryMode === 'preview'} onClose={() => setTryMode(null)} />
-      )}
       <PrototypeModal idea={idea} open={tryMode === 'prototype'} onClose={() => setTryMode(null)} />
 
       {project && (
