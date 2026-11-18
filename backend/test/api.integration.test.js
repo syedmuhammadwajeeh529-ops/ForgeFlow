@@ -9,7 +9,7 @@ import request from 'supertest';
 const enabled = process.env.RUN_DB_INTEGRATION_TESTS === '1';
 
 test('ForgeFlow API integration: authentication, ownership, projects, versions and AI guardrails', {
-  skip: !enabled && 'Set RUN_DB_INTEGRATION_TESTS=1 and provide a disposable MySQL database to run integration tests.'
+  skip: !enabled && 'Set RUN_DB_INTEGRATION_TESTS=1 and provide a disposable MySQL database to run the integration test.'
 }, async () => {
   process.env.NODE_ENV = 'test';
   process.env.DB_HOST ||= '127.0.0.1';
@@ -20,13 +20,8 @@ test('ForgeFlow API integration: authentication, ownership, projects, versions a
   process.env.DB_NAME = 'forgeflow_test';
   process.env.JWT_SECRET ||= 'forgeflow-integration-test-secret-at-least-32-characters';
   process.env.FRONTEND_URL ||= 'http://localhost:5173';
-  delete process.env.AI_API_KEY;
   process.env.OPENROUTER_API_KEY = '';
-  process.env.GEMINI_API_KEY = '';
   process.env.GROQ_API_KEY = '';
-  process.env.MISTRAL_API_KEY = '';
-  process.env.DEEPSEEK_API_KEY = '';
-  process.env.OPENAI_API_KEY = '';
 
   const connection = await mysql.createConnection({
     host: process.env.DB_HOST,
