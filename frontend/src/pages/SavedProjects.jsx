@@ -25,6 +25,9 @@ export default function SavedProjects() {
       queryClient.invalidateQueries({ queryKey: ['saved-projects'] });
       toast({ title: 'Project removed' });
     },
+    onError: (error) => {
+      toast({ title: 'Could not remove project', description: error.message || 'Please try again.', variant: 'destructive' });
+    },
   });
 
   if (!isAuthenticated) {
