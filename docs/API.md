@@ -37,4 +37,10 @@ Send authenticated requests with `Authorization: Bearer <token>`.
 - `GET /feature-versions?project_id=<id>`, `POST /feature-versions`, `PATCH /feature-versions/:id`, `DELETE /feature-versions/:id`.
 
 ## AI
-- `POST /ai/generate` body: prompt and optional response_json_schema. Requires `AI_API_KEY` on the backend. The API key is never sent to the client.
+- `POST /ai/generate` accepts a JSON body containing `prompt` and an optional `response_json_schema` object.
+- Authentication is optional for this endpoint. When a valid bearer token is supplied, the request is associated with that user; otherwise it is treated as an unauthenticated request.
+- The backend uses configured OpenRouter and/or Groq credentials. Configure `OPENROUTER_API_KEY` and/or `GROQ_API_KEY` in the backend's private `.env` file. The provider key is never sent to the client.
+- The default provider order is `openrouter,groq`. Unconfigured providers are skipped and retryable provider failures can fall through to the next provider.
+- If no provider is configured, the endpoint returns HTTP 503 with a configuration error. If all configured providers are unavailable, it returns an availability error.
+- Default models are `openrouter/free` and `openai/gpt-oss-20b`. Free-tier access and model availability are controlled by the providers and are not guaranteed.
+- See [AI provider setup](AI_PROVIDERS.md) for environment variables, model selection, failover, and rate-limit notes.
