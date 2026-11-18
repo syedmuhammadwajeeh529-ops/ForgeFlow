@@ -12,7 +12,7 @@ if (process.env.JWT_SECRET.length < 32) {
   throw new Error('JWT_SECRET must be at least 32 characters long.');
 }
 
-const providerOrder = (process.env.AI_PROVIDER_ORDER || 'openrouter,gemini,groq,mistral')
+const providerOrder = (process.env.AI_PROVIDER_ORDER || 'openrouter,gemini,groq')
   .split(',')
   .map((provider) => provider.trim().toLowerCase())
   .filter(Boolean);
