@@ -19,6 +19,8 @@ export const createProviders = (config) => {
       ? new OpenAICompatibleProvider({ id: 'groq', ...p.groq, timeoutMs }) : null,
     mistral: p.mistral.apiKey && p.mistral.model
       ? new OpenAICompatibleProvider({ id: 'mistral', ...p.mistral, timeoutMs }) : null,
+    deepseek: p.deepseek.apiKey && p.deepseek.model
+      ? new OpenAICompatibleProvider({ id: 'deepseek', ...p.deepseek, timeoutMs }) : null,
     openai: p.openai.apiKey && p.openai.model
       ? new OpenAICompatibleProvider({ id: 'openai', ...p.openai, timeoutMs }) : null
   };
