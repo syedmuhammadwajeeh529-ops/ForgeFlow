@@ -1,4 +1,4 @@
-# AI provider and TinyFish setup
+# AI provider setup
 
 ## 1. AI provider failover
 
@@ -55,56 +55,8 @@ A failed provider is temporarily cooled down. Once its cooldown expires, it is e
 
 The previous `AI_API_KEY`, `AI_BASE_URL`, and `AI_MODEL` variables remain supported as aliases for the OpenAI-compatible provider. Existing deployments can migrate gradually.
 
-## 2. TinyFish web tools
 
-TinyFish has a separate service because web search, page extraction, and browser automation are not interchangeable with LLM chat generation.
-
-All TinyFish endpoints require `TINYFISH_API_KEY` in the backend environment.
-
-### Search
-
-`POST /api/web/search`
-
-```json
-{
-  "query": "current JavaScript framework releases"
-}
-```
-
-### Fetch pages
-
-`POST /api/web/fetch`
-
-```json
-{
-  "urls": ["https://example.com"],
-  "purpose": "Extract the page content for research",
-  "format": "markdown"
-}
-```
-
-TinyFish Fetch accepts 1 to 10 URLs per request. Supported formats are `markdown`, `html`, and `json`.
-
-### Run a browser agent
-
-`POST /api/web/agent`
-
-```json
-{
-  "url": "https://example.com",
-  "goal": "Find the pricing page and extract plan names and prices",
-  "output_schema": {
-    "type": "object",
-    "properties": {
-      "plans": { "type": "array" }
-    }
-  }
-}
-```
-
-Search and Fetch are currently offered free by TinyFish subject to its published rate limits. Browser-agent automation has separate usage limits and may require paid credits. Browser automation can take longer than an ordinary AI completion, so the backend gives this operation a longer request timeout.
-
-## 3. Local key setup
+## 2. Local key setup
 
 1. Copy `backend/.env.example` to `backend/.env` if you have not already done so.
 2. Open `backend/.env` and paste each provider key into its matching variable.
@@ -114,10 +66,9 @@ Search and Fetch are currently offered free by TinyFish subject to its published
 
 You can configure only one provider to begin with. Add more keys later and the backend will automatically include those providers in the configured order.
 
-## 4. Operational notes
+## 3. Operational notes
 
 - Free-tier quotas, model availability, and rate limits are controlled by each provider and can change.
 - Failover cannot guarantee uninterrupted generation if every configured provider is unavailable or all accounts have exhausted their quotas.
 - Providers must return a JSON object because the existing ForgeFlow AI endpoint has a JSON response contract.
 - The backend logs provider IDs and HTTP status codes on failure, never API keys.
-- TinyFish is intentionally not part of the LLM failover chain.
