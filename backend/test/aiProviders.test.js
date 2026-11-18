@@ -26,9 +26,9 @@ test('AI orchestrator falls through to the next provider after a rate limit', as
       }
     },
     {
-      id: 'gemini',
+      id: 'groq',
       async generate() {
-        attempts.push('gemini');
+        attempts.push('groq');
         return '{"title":"Fallback succeeded"}';
       }
     }
@@ -37,8 +37,8 @@ test('AI orchestrator falls through to the next provider after a rate limit', as
   const orchestrator = new AIOrchestrator({ providers, config: { cooldownMs: 1000 } });
   const response = await orchestrator.generate({ prompt: 'Create an app idea' });
 
-  assert.deepEqual(attempts, ['openrouter', 'gemini']);
-  assert.equal(response.provider, 'gemini');
+  assert.deepEqual(attempts, ['openrouter', 'groq']);
+  assert.equal(response.provider, 'groq');
   assert.deepEqual(response.result, { title: 'Fallback succeeded' });
 });
 
@@ -79,11 +79,7 @@ test('AI orchestrator cools down a provider that has just failed', async () => {
 test('provider registry accepts provider order as an array or comma-separated string', () => {
   const providers = {
     openrouter: { apiKey: 'test-key', model: 'test-model', baseUrl: 'https://example.com/v1' },
-    gemini: { apiKey: '', model: 'test-model' },
-    groq: { apiKey: '', model: 'test-model' },
-    mistral: { apiKey: '', model: 'test-model' },
-    deepseek: { apiKey: '', model: 'test-model' },
-    openai: { apiKey: '', model: 'test-model' }
+    groq: { apiKey: '', model: 'test-model', baseUrl: 'https://example.com/v1' }
   };
 
   const fromArray = createProviders({

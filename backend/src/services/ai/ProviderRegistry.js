@@ -1,5 +1,4 @@
 import OpenAICompatibleProvider from './providers/OpenAICompatibleProvider.js';
-import GeminiProvider from './providers/GeminiProvider.js';
 
 export const createProviders = (config) => {
   const timeoutMs = config.timeoutMs;
@@ -13,21 +12,13 @@ export const createProviders = (config) => {
             'X-Title': p.openrouter.appName || 'ForgeFlow'
           }
         }) : null,
-    gemini: p.gemini.apiKey && p.gemini.model
-      ? new GeminiProvider({ ...p.gemini, timeoutMs }) : null,
     groq: p.groq.apiKey && p.groq.model
-      ? new OpenAICompatibleProvider({ id: 'groq', ...p.groq, timeoutMs }) : null,
-    mistral: p.mistral.apiKey && p.mistral.model
-      ? new OpenAICompatibleProvider({ id: 'mistral', ...p.mistral, timeoutMs }) : null,
-    deepseek: p.deepseek.apiKey && p.deepseek.model
-      ? new OpenAICompatibleProvider({ id: 'deepseek', ...p.deepseek, timeoutMs }) : null,
-    openai: p.openai.apiKey && p.openai.model
-      ? new OpenAICompatibleProvider({ id: 'openai', ...p.openai, timeoutMs }) : null
+      ? new OpenAICompatibleProvider({ id: 'groq', ...p.groq, timeoutMs }) : null
   };
 
   const providerOrder = Array.isArray(config.providerOrder)
     ? config.providerOrder
-    : String(config.providerOrder || 'openrouter,gemini,groq').split(',');
+    : String(config.providerOrder || 'openrouter,groq').split(',');
 
   return providerOrder
     .map((name) => String(name).trim().toLowerCase())

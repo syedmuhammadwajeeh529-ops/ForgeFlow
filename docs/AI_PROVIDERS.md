@@ -1,6 +1,6 @@
 # AI provider setup
 
-## 1. AI provider failover
+## 1. Free-tier AI provider failover
 
 The frontend continues to call the existing endpoint:
 
@@ -24,51 +24,45 @@ Example request:
 
 The response data remains the generated JSON object, so the frontend does not need to know which provider handled the request.
 
-### Supported AI providers
+### Supported providers
 
 | Provider ID | Environment key | Default model |
 | --- | --- | --- |
 | OpenRouter | `OPENROUTER_API_KEY` | `openrouter/free` |
-| Gemini | `GEMINI_API_KEY` | `gemini-2.5-flash` |
 | Groq | `GROQ_API_KEY` | `openai/gpt-oss-20b` |
-| Mistral | `MISTRAL_API_KEY` | `mistral-small-latest` |
-| DeepSeek | `DEEPSEEK_API_KEY` | `deepseek-chat` |
-| OpenAI / compatible | `OPENAI_API_KEY` | `gpt-4o-mini` |
 
-A provider is enabled when its API key is present. Model names and base URLs can be overridden in `backend/.env`. OpenRouter's free model availability and provider quotas can change; choose a currently available model if the `openrouter/free` alias is unavailable for your account.
+ForgeFlow is configured to use OpenRouter's free-model route and Groq's Free tier only. Do not change either model to a paid model unless the project is deliberately updated to support paid usage. Free access is subject to provider account eligibility, model availability, rate limits, and usage policies. Free service is not unlimited or guaranteed.
+
+A provider is enabled when its API key is present. Model names and base URLs can be overridden in `backend/.env`. Keep OpenRouter on a model with a zero-cost `:free` variant or use the `openrouter/free` route. Check the provider's current pricing before changing models.
 
 ### Provider order and fallback
 
 Set the order in `AI_PROVIDER_ORDER`, for example:
 
 ```env
-AI_PROVIDER_ORDER=openrouter,gemini,groq
+AI_PROVIDER_ORDER=openrouter,groq
 AI_PROVIDER_TIMEOUT_MS=30000
 AI_PROVIDER_COOLDOWN_MS=60000
 ```
 
-Unconfigured providers are skipped. The default order contains OpenRouter, Gemini and Groq. Mistral, DeepSeek and OpenAI are supported but deliberately excluded from the default order because API usage may require paid credits. Add any of them to the order only if you want to enable it. The orchestrator tries providers sequentially. It moves to the next provider for rate limits, authentication failures, temporary server errors, connection failures, timeouts, and invalid/empty JSON responses. Invalid request errors (400 and 422) are not retried across providers.
+Unconfigured providers are skipped. The default order is OpenRouter followed by Groq. The orchestrator tries configured providers sequentially. It moves to the next provider for rate limits, authentication failures, temporary server errors, connection failures, timeouts, and invalid/empty JSON responses. Invalid request errors (400 and 422) are not retried across providers.
 
 A failed provider is temporarily cooled down. Once its cooldown expires, it is eligible again automatically. Cooldown state is in memory and resets when the backend process restarts. In a multi-instance production deployment, use a shared cache such as Redis for cross-instance circuit-breaker state.
-
-### Legacy configuration
-
-The previous `AI_API_KEY`, `AI_BASE_URL`, and `AI_MODEL` variables remain supported as aliases for the OpenAI-compatible provider. Existing deployments can migrate gradually.
-
 
 ## 2. Local key setup
 
 1. Copy `backend/.env.example` to `backend/.env` if you have not already done so.
-2. Open `backend/.env` and paste each provider key into its matching variable.
-3. Keep the model defaults initially. Change a model only if the provider dashboard says that model is unavailable to your account.
+2. Open `backend/.env` and paste your OpenRouter and/or Groq API key into its matching variable.
+3. Keep the free model defaults initially. Do not select a paid model.
 4. Keep keys private. Never put them in frontend environment variables, source files, screenshots, or Git commits.
 5. Restart the backend after editing `.env`.
 
-You can configure only one provider to begin with. Add more keys later and the backend will automatically include those providers in the configured order.
+You can configure only one provider to begin with. Add the other free-tier provider later and the backend will automatically include it in the configured order.
 
 ## 3. Operational notes
 
 - Free-tier quotas, model availability, and rate limits are controlled by each provider and can change.
+- OpenRouter's free plan currently has a daily request cap. Groq also enforces model-specific rate limits.
 - Failover cannot guarantee uninterrupted generation if every configured provider is unavailable or all accounts have exhausted their quotas.
 - Providers must return a JSON object because the existing ForgeFlow AI endpoint has a JSON response contract.
 - The backend logs provider IDs and HTTP status codes on failure, never API keys.

@@ -19,9 +19,9 @@ mysql -u root -p < backend/database/schema.sql
 mysql -u root -p forgeflow < backend/database/seed.sql
 ```
 
-Create `backend/.env` from `backend/.env.example`. Required values are DB_HOST, DB_USER, DB_NAME and JWT_SECRET. JWT_SECRET must be at least 32 characters. Keep secrets out of Git.
+Create `backend/.env` from `backend/.env.example`. Required values are `DB_HOST`, `DB_USER`, `DB_NAME`, and `JWT_SECRET`. `JWT_SECRET` must be at least 32 characters. Keep secrets out of Git.
 
-Create `frontend/.env` from `frontend/.env.example` if needed. Set VITE_API_URL to the API base URL, including `/api`.
+Create `frontend/.env` from `frontend/.env.example` if needed. Set `VITE_API_URL` to the API base URL, including `/api`.
 
 Start both apps:
 
@@ -31,22 +31,45 @@ npm run dev
 
 Or run them separately with `npm run dev:backend` and `npm run dev:frontend`.
 
-Run the backend integration suite with `npm test` from the repository root. The test suite expects a reachable MySQL database with the ForgeFlow schema and seeded project ideas.
-
 - Frontend: http://localhost:5173
 - API health: http://localhost:5000/api/health
 
-## AI provider
-Configure an OpenAI-compatible endpoint in backend/.env:
+## Tests
 
-```dotenv
-AI_API_KEY=your-provider-key
-AI_BASE_URL=https://api.openai.com/v1
-AI_MODEL=gpt-4o-mini
+Run the default backend test suite from the repository root:
+
+```bash
+npm test
 ```
 
-For OpenRouter, set AI_BASE_URL to https://openrouter.ai/api/v1 and choose a model available to your account.
+The database integration test is skipped unless `RUN_DB_INTEGRATION_TESTS=1` is set. It connects to MySQL, creates/uses the dedicated `forgeflow_test` database, and truncates its test tables. The MySQL account must be allowed to create the database and tables. Do not run this test against your normal development database or any production database.
+
+On Windows Command Prompt:
+
+```cmd
+set RUN_DB_INTEGRATION_TESTS=1 && npm test
+```
+
+On macOS/Linux:
+
+```bash
+RUN_DB_INTEGRATION_TESTS=1 npm test
+```
+
+## AI provider configuration
+
+ForgeFlow currently supports OpenRouter and Groq only. Configure one or both providers in `backend/.env` using the variables in `backend/.env.example`:
+
+```dotenv
+AI_PROVIDER_ORDER=openrouter,groq
+OPENROUTER_API_KEY=
+OPENROUTER_MODEL=openrouter/free
+GROQ_API_KEY=
+GROQ_MODEL=openai/gpt-oss-20b
+```
+
+You only need to configure the API key for the provider(s) you intend to use. Keep the default model settings initially. Free-tier availability, quotas, and rate limits are controlled by each provider and can change. See [AI provider setup](AI_PROVIDERS.md) for failover behavior and operational notes.
 
 ## Optional Base44 data migration
 
-The curated catalogue is included in backend/database/seed.sql. The original Base44 app also held 15 saved projects and one project snapshot. After creating your ForgeFlow account, open backend/database/import_base44_saved_projects.sql, replace the placeholder email with your ForgeFlow account email, and run the script once against the forgeflow database. It assigns the old anonymous records to that account; only run it if those records are yours. The original app had no generated-idea records or feature-history records to import.
+The curated catalogue is included in `backend/database/seed.sql`. The original Base44 app also held 15 saved projects and one project snapshot. After creating your ForgeFlow account, open `backend/database/import_base44_saved_projects.sql`, replace the placeholder email with your ForgeFlow account email, and run the script once against the `forgeflow` database. It assigns the old anonymous records to that account; only run it if those records are yours. The original app had no generated-idea records or feature-history records to import.
