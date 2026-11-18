@@ -16,11 +16,7 @@ export const createProviders = (config) => {
     gemini: p.gemini.apiKey && p.gemini.model
       ? new GeminiProvider({ ...p.gemini, timeoutMs }) : null,
     groq: p.groq.apiKey && p.groq.model
-      ? new OpenAICompatibleProvider({ id: 'groq', ...p.groq, timeoutMs }) : null,
-    deepseek: p.deepseek.apiKey && p.deepseek.model
-      ? new OpenAICompatibleProvider({ id: 'deepseek', ...p.deepseek, timeoutMs }) : null,
-    openai: p.openai.apiKey && p.openai.model
-      ? new OpenAICompatibleProvider({ id: 'openai', ...p.openai, timeoutMs }) : null
+      ? new OpenAICompatibleProvider({ id: 'groq', ...p.groq, timeoutMs }) : null
   };
 
   const providerOrder = Array.isArray(config.providerOrder)
