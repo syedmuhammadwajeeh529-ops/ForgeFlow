@@ -18,7 +18,7 @@ class FeatureVersion {
     const direction = String(sort).startsWith('-') ? 'DESC' : 'ASC';
     const safeLimit = Math.max(1, Math.min(Number(limit) || 50, 100));
     const [rows] = await pool.execute(
-      `SELECT id, project_id, label, features, notes, tech_stack, created_by_id,
+      `SELECT id, project_id, label, description, features, notes, tech_stack, created_by_id,
               created_at AS created_date, updated_at AS updated_date
        FROM feature_versions
        WHERE project_id = ? AND created_by_id = ?
@@ -38,12 +38,12 @@ class FeatureVersion {
     return normalizeRow(rows[0]);
   }
 
-  async create({ projectId, label, features = [], notes = null, techStack = [], createdById }) {
+  async create({ projectId, label, description = null, features = [], notes = null, techStack = [], createdById }) {
     const id = generateId();
     await pool.execute(
-      `INSERT INTO feature_versions (id, project_id, label, features, notes, tech_stack, created_by_id)
-       VALUES (?, ?, ?, ?, ?, ?, ?)`,
-      [id, projectId, label, serializeFeatures(features), notes, serializeStack(techStack), createdById]
+      `INSERT INTO feature_versions (id, project_id, label, description, features, notes, tech_stack, created_by_id)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+      [id, projectId, label, description, serializeFeatures(features), notes, serializeStack(techStack), createdById]
     );
     return this.findById(id, createdById);
   }
@@ -52,6 +52,7 @@ class FeatureVersion {
     const fields = [];
     const values = [];
     if (Object.hasOwn(data, 'label')) { fields.push('label = ?'); values.push(data.label); }
+    if (Object.hasOwn(data, 'description')) { fields.push('description = ?'); values.push(data.description); }
     if (Object.hasOwn(data, 'features')) { fields.push('features = ?'); values.push(serializeFeatures(data.features)); }
     if (Object.hasOwn(data, 'notes')) { fields.push('notes = ?'); values.push(data.notes); }
     if (Object.hasOwn(data, 'techStack')) { fields.push('tech_stack = ?'); values.push(serializeStack(data.techStack)); }
