@@ -17,7 +17,7 @@ class ProjectVersion {
     const direction = String(sort).startsWith('-') ? 'DESC' : 'ASC';
     const safeLimit = Math.max(1, Math.min(Number(limit) || 50, 100));
     const [rows] = await pool.execute(
-      `SELECT id, project_id, label, code, language, notes, features, tech_stack, created_by_id,
+      `SELECT id, project_id, label, description, code, language, notes, features, tech_stack, created_by_id,
               created_at AS created_date, updated_at AS updated_date
        FROM project_versions
        WHERE project_id = ? AND created_by_id = ?
@@ -37,13 +37,13 @@ class ProjectVersion {
     return normalizeRow(rows[0]);
   }
 
-  async create({ projectId, label, code, language = null, notes = null, features = [], techStack = [], createdById }) {
+  async create({ projectId, label, description = null, code, language = null, notes = null, features = [], techStack = [], createdById }) {
     const id = generateId();
     await pool.execute(
       `INSERT INTO project_versions
-       (id, project_id, label, code, language, notes, features, tech_stack, created_by_id)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [id, projectId, label, code, language, notes, Array.isArray(features) ? features.join('\n') : String(features || ''), serializeStack(techStack), createdById]
+       (id, project_id, label, description, code, language, notes, features, tech_stack, created_by_id)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [id, projectId, label, description, code, language, notes, Array.isArray(features) ? features.join('\n') : String(features || ''), serializeStack(techStack), createdById]
     );
     return this.findById(id, createdById);
   }
