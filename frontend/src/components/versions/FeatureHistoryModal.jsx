@@ -74,9 +74,9 @@ export default function FeatureHistoryModal({ project, open, onClose }) {
     setEditing(true);
   };
 
-  const recalculateTechStack = async (features) => {
+  const recalculateTechStack = async (features, existingStack = selected?.tech_stack) => {
     const result = await base44.integrations.Core.InvokeLLM({
-      prompt: `Recalculate the minimum technology stack required for this exact project version. Use only technologies needed by the listed features. Remove technologies no remaining feature needs, but keep shared frameworks, runtimes, databases, and libraries when at least one remaining feature still requires them. Do not add optional or speculative tools.\nProject: ${project?.title || 'Untitled'}\nDescription: ${project?.description || ''}\nCategory: ${project?.category || ''}\nExisting stack for context: ${(Array.isArray(selected?.tech_stack) ? selected.tech_stack : (Array.isArray(project?.tech_stack) ? project.tech_stack : [])).join(', ')}\nFeatures in this version:\n${features.map((item) => item.replace(/^✓ /, '')).join('\n')}\nReturn a concise, deduplicated array of technology names.`,
+      prompt: `Recalculate the minimum technology stack required for this exact project version. Use only technologies needed by the listed features. Remove technologies no remaining feature needs, but keep shared frameworks, runtimes, databases, and libraries when at least one remaining feature still requires them. Do not add optional or speculative tools.\nProject: ${project?.title || 'Untitled'}\nDescription: ${project?.description || ''}\nCategory: ${project?.category || ''}\nExisting stack for context: ${(Array.isArray(existingStack) ? existingStack : (Array.isArray(project?.tech_stack) ? project.tech_stack : [])).join(', ')}\nFeatures in this version:\n${features.map((item) => item.replace(/^✓ /, '')).join('\n')}\nReturn a concise, deduplicated array of technology names.`,
       response_json_schema: { type: 'object', properties: { tech_stack: { type: 'array', items: { type: 'string' } } }, required: ['tech_stack'] },
     });
     if (!Array.isArray(result?.tech_stack)) throw new Error('AI did not return a valid technology stack.');
@@ -86,7 +86,7 @@ export default function FeatureHistoryModal({ project, open, onClose }) {
   const handleCreate = async () => {
     const features = defaultFeatures(project?.category);
     let techStack;
-    try { techStack = await recalculateTechStack(features); }
+    try { techStack = await recalculateTechStack(features, project?.tech_stack); }
     catch (error) { toast({ title: 'Could not calculate the version stack', description: error.message, variant: 'destructive' }); return; }
     createMutation.mutate({
       project_id: projectId,
