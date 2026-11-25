@@ -30,6 +30,7 @@ export default function ProjectVersionsModal({ project, open, onClose }) {
   });
 
   const latestFeatures = featureVersions[0]?.features || '';
+  const latestDescription = featureVersions[0]?.description || project?.description || '';
   const latestTechStack = Array.isArray(featureVersions[0]?.tech_stack) ? featureVersions[0].tech_stack : (Array.isArray(project?.tech_stack) ? project.tech_stack : []);
 
   const createMutation = useMutation({
@@ -58,6 +59,7 @@ export default function ProjectVersionsModal({ project, open, onClose }) {
           project_id: projectId,
           label: version.label,
           features: version.features,
+          description: version.description || project?.description || '',
           tech_stack: version.tech_stack || [],
           notes: `Restored from ${version.label}`,
         });
@@ -81,6 +83,7 @@ export default function ProjectVersionsModal({ project, open, onClose }) {
       code: project?.code || '',
       language: project?.language || 'javascript',
       notes: `Snapshot of ${latestFeatures ? 'current feature plan' : 'project'}`,
+      description: latestDescription,
       features: latestFeatures,
       tech_stack: latestTechStack,
     });
@@ -131,7 +134,8 @@ export default function ProjectVersionsModal({ project, open, onClose }) {
                       {isCurrent && <Badge className="text-[10px] bg-green-100 text-green-700 border-green-200 px-1.5 py-0">Current</Badge>}
                       <span className="text-[10px] text-muted-foreground">{new Date(version.created_date).toLocaleDateString()}</span>
                     </div>
-                    {version.notes && <p className="text-xs text-muted-foreground line-clamp-2 mb-1">{version.notes}</p>}
+                    {version.description && <p className="text-xs text-muted-foreground line-clamp-3 mb-1">{version.description}</p>}
+                    {version.notes && <p className="text-[11px] text-muted-foreground line-clamp-2 mb-1">{version.notes}</p>}
                     <p className="text-[11px] text-muted-foreground">{features.length} feature{features.length !== 1 ? 's' : ''} in this version</p>
                     <div className="flex flex-wrap gap-1 mt-2">
                       {(Array.isArray(version.tech_stack) ? version.tech_stack : []).map((technology) => <Badge key={technology} variant="secondary" className="text-[10px]">{technology}</Badge>)}
