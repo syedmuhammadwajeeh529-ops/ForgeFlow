@@ -19,6 +19,7 @@ export default function FeatureHistoryModal({ project, open, onClose }) {
   const [localFeatures, setLocalFeatures] = useState([]);
   const [localNotes, setLocalNotes] = useState('');
   const [localStack, setLocalStack] = useState([]);
+  const [localDescription, setLocalDescription] = useState('');
   const [newFeatureText, setNewFeatureText] = useState('');
 
   const projectId = project?.id;
@@ -70,40 +71,64 @@ export default function FeatureHistoryModal({ project, open, onClose }) {
     setLocalLabel(selected.label || '');
     setLocalFeatures(splitFeatures(selected.features));
     setLocalNotes(selected.notes || '');
+    setLocalDescription(selected.description || project?.description || '');
     setLocalStack(Array.isArray(selected.tech_stack) ? selected.tech_stack : []);
     setEditing(true);
   };
 
-  const recalculateTechStack = async (features, existingStack = selected?.tech_stack) => {
+  const generateVersionDetails = async (features, existingStack = selected?.tech_stack) => {
+    const cleanFeatures = features.map((item) => item.replace(/^✓ /, '').trim()).filter(Boolean);
     const result = await base44.integrations.Core.InvokeLLM({
-      prompt: `Recalculate the minimum technology stack required for this exact project version. Use only technologies needed by the listed features. Remove technologies no remaining feature needs, but keep shared frameworks, runtimes, databases, and libraries when at least one remaining feature still requires them. Do not add optional or speculative tools.\nProject: ${project?.title || 'Untitled'}\nDescription: ${project?.description || ''}\nCategory: ${project?.category || ''}\nExisting stack for context: ${(Array.isArray(existingStack) ? existingStack : (Array.isArray(project?.tech_stack) ? project.tech_stack : [])).join(', ')}\nFeatures in this version:\n${features.map((item) => item.replace(/^✓ /, '')).join('\n')}\nReturn a concise, deduplicated array of technology names.`,
-      response_json_schema: { type: 'object', properties: { tech_stack: { type: 'array', items: { type: 'string' } } }, required: ['tech_stack'] },
+      prompt: `Update the project description and technology stack for this exact version.
+Write a polished, specific description of 1–2 sentences (about 30–55 words) explaining what the product does and how its listed features work together. Describe only capabilities represented by the features. Do not mention planned or missing capabilities, and do not simply repeat the feature list.
+Then calculate the minimum technology stack required by these features. Keep shared frameworks, runtimes, databases, and libraries only when at least one feature needs them. Remove unnecessary technologies and do not add speculative tools.
+Project: ${project?.title || 'Untitled'}
+Current description for context only: ${project?.description || ''}
+Category: ${project?.category || ''}
+Existing stack for context: ${(Array.isArray(existingStack) ? existingStack : (Array.isArray(project?.tech_stack) ? project.tech_stack : [])).join(', ')}
+Features in this version:
+${cleanFeatures.map((item) => `- ${item}`).join('\n')}
+Return JSON with description (string) and tech_stack (array of technology-name strings).`,
+      response_json_schema: {
+        type: 'object',
+        properties: {
+          description: { type: 'string' },
+          tech_stack: { type: 'array', items: { type: 'string' } },
+        },
+        required: ['description', 'tech_stack'],
+      },
     });
-    if (!Array.isArray(result?.tech_stack)) throw new Error('AI did not return a valid technology stack.');
-    return [...new Set(result.tech_stack.map((item) => String(item).trim()).filter(Boolean))];
+    if (typeof result?.description !== 'string' || !result.description.trim() || !Array.isArray(result?.tech_stack)) {
+      throw new Error('AI did not return a valid version description and technology stack.');
+    }
+    return {
+      description: result.description.trim(),
+      tech_stack: [...new Set(result.tech_stack.map((item) => String(item).trim()).filter(Boolean))],
+    };
   };
 
   const handleCreate = async () => {
     const features = defaultFeatures(project?.category);
-    let techStack;
-    try { techStack = await recalculateTechStack(features, project?.tech_stack); }
-    catch (error) { toast({ title: 'Could not calculate the version stack', description: error.message, variant: 'destructive' }); return; }
+    let details;
+    try { details = await generateVersionDetails(features, project?.tech_stack); }
+    catch (error) { toast({ title: 'Could not generate version details', description: error.message, variant: 'destructive' }); return; }
     createMutation.mutate({
       project_id: projectId,
       label: `v0.${versions.length + 1}`,
       features: features.join('\n'),
+      description: details.description,
       notes: '',
-      tech_stack: techStack,
+      tech_stack: details.tech_stack,
     });
-    setSelectedIdx(versions.length);
+    setSelectedIdx(0);
   };
 
   const saveEdit = async () => {
     try {
-      const techStack = await recalculateTechStack(localFeatures);
-      updateMutation.mutate({ id: selected.id, data: { label: localLabel, features: localFeatures.join('\n'), notes: localNotes, tech_stack: techStack } });
+      const details = await generateVersionDetails(localFeatures, localStack);
+      updateMutation.mutate({ id: selected.id, data: { label: localLabel, description: details.description, features: localFeatures.join('\n'), notes: localNotes, tech_stack: details.tech_stack } });
     } catch (error) {
-      toast({ title: 'Could not recalculate technology stack', description: error.message, variant: 'destructive' });
+      toast({ title: 'Could not regenerate version details', description: error.message, variant: 'destructive' });
     }
   };
 
@@ -118,10 +143,10 @@ export default function FeatureHistoryModal({ project, open, onClose }) {
       f === feature ? (f.startsWith('✓ ') ? f.slice(2) : `✓ ${f}`) : f
     );
     try {
-      const techStack = await recalculateTechStack(updated);
-      updateMutation.mutate({ id: selected.id, data: { features: updated.join('\n'), tech_stack: techStack } });
+      const details = await generateVersionDetails(updated);
+      updateMutation.mutate({ id: selected.id, data: { features: updated.join('\n'), description: details.description, tech_stack: details.tech_stack } });
     } catch (error) {
-      toast({ title: 'Could not recalculate technology stack', description: error.message, variant: 'destructive' });
+      toast({ title: 'Could not regenerate version details', description: error.message, variant: 'destructive' });
     }
   };
 
@@ -269,6 +294,13 @@ export default function FeatureHistoryModal({ project, open, onClose }) {
                       )}
                     </div>
                   </div>
+
+                  <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide mb-2">
+                    Version description
+                  </p>
+                  <p className="text-sm text-muted-foreground bg-muted/30 rounded-lg px-3 py-2 leading-relaxed mb-4">
+                    {selected.description || project?.description || 'This version does not have a description yet. Save a feature change to generate one.'}
+                  </p>
 
                   <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide mb-2">
                     Features · {displayFeatures.filter((f) => f.startsWith('✓ ')).length}/{displayFeatures.length} done
