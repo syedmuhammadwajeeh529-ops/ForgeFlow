@@ -11,10 +11,10 @@ ForgeFlow uses **MySQL 8.0+**, InnoDB, `utf8mb4`, and foreign-key constraints. T
 | `project_ideas` | Public curated project catalogue |
 | `generated_ideas` | User-owned generated ideas |
 | `saved_projects` | User-owned project workspace and source code |
-| `project_versions` | Code and project snapshots |
-| `feature_versions` | Feature-plan history |
+| `project_versions` | Code, feature, and technology-stack snapshots |
+| `feature_versions` | Feature-plan history with a technology stack per version |
 
-User-owned records reference `users.id` and are deleted when their owner is deleted. Version records reference `saved_projects.id` and cascade when the parent project is deleted. The optional `saved_projects.idea_id` is intentionally not a foreign key: imported Base44 records contain legacy idea identifiers that are not guaranteed to exist in the curated catalogue. Tech-stack and tag arrays use MySQL JSON columns; version feature lists are newline-separated text to match the editor data format.
+User-owned records reference `users.id` and are deleted when their owner is deleted. Version records reference `saved_projects.id` and cascade when the parent project is deleted. The optional `saved_projects.idea_id` is intentionally not a foreign key: imported Base44 records contain legacy idea identifiers that are not guaranteed to exist in the curated catalogue. Project, feature-version, and project-version technology stacks use independent MySQL JSON columns; version feature lists are newline-separated text to match the editor data format. Updating a feature version recalculates only that version's stack through the configured AI provider. Project snapshots preserve their own stack and restore it when switched.
 
 ## Fresh installation
 
@@ -27,13 +27,14 @@ mysql -u root -p forgeflow < backend/database/seed.sql
 
 ## Existing installation
 
-Back up the database first, then apply the additive, repeatable index migration:
+Back up the database first, then apply the migrations:
 
 ```sh
 mysql -u root -p < backend/database/002_query_indexes.sql
+mysql -u root -p forgeflow < backend/database/migrations/20261125_add_version_tech_stacks.sql
 ```
 
-The migration checks `information_schema` before creating each index, so it can be safely re-run. It does not drop tables or alter existing records.
+The version-stack migration adds JSON columns and backfills existing version rows from each saved project's current stack as an initial baseline. It is a one-time migration and should not be run twice.
 
 ## Configuration
 
