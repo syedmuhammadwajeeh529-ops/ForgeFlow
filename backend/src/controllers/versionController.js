@@ -32,6 +32,7 @@ export const createProjectVersion = asyncHandler(async (req, res) => {
   const version = await ProjectVersion.create({
     projectId: project.id,
     label: req.body.label,
+    description: req.body.description ?? project.description,
     code: req.body.code ?? project.code ?? '',
     language: req.body.language ?? project.language ?? 'javascript',
     notes: req.body.notes ?? project.notes ?? '',
@@ -63,6 +64,7 @@ export const createFeatureVersion = asyncHandler(async (req, res) => {
   const version = await FeatureVersion.create({
     projectId: project.id,
     label: req.body.label,
+    description: req.body.description ?? project.description,
     features: toArray(req.body.features),
     notes: req.body.notes ?? '',
     techStack: Array.isArray(req.body.tech_stack) ? req.body.tech_stack : (Array.isArray(project.tech_stack) ? project.tech_stack : []),
@@ -74,17 +76,33 @@ export const createFeatureVersion = asyncHandler(async (req, res) => {
 export const updateFeatureVersion = asyncHandler(async (req, res) => {
   const patch = {};
   if (Object.hasOwn(req.body, 'label')) patch.label = req.body.label;
+  if (Object.hasOwn(req.body, 'description')) patch.description = req.body.description;
   if (Object.hasOwn(req.body, 'features')) patch.features = toArray(req.body.features);
   if (Object.hasOwn(req.body, 'notes')) patch.notes = req.body.notes;
   if (Object.hasOwn(req.body, 'tech_stack')) patch.techStack = req.body.tech_stack;
   const version = await FeatureVersion.update(req.params.id, req.user.id, patch);
   if (!version) throw new AppError('Feature version not found.', 404);
+  const latest = await FeatureVersion.findAll(version.project_id, req.user.id, { sort: '-created_date', limit: 1 });
+  if (latest[0]?.id === version.id) {
+    await SavedProject.update(version.project_id, req.user.id, {
+      description: version.description ?? '',
+      techStack: version.tech_stack ?? []
+    });
+  }
   return successResponse(res, version, 'Feature version updated.');
 });
 
 export const deleteFeatureVersion = asyncHandler(async (req, res) => {
+  const existing = await FeatureVersion.findById(req.params.id, req.user.id);
   const deleted = await FeatureVersion.delete(req.params.id, req.user.id);
   if (!deleted) throw new AppError('Feature version not found.', 404);
+  const latest = await FeatureVersion.findAll(existing.project_id, req.user.id, { sort: '-created_date', limit: 1 });
+  if (latest[0]) {
+    await SavedProject.update(existing.project_id, req.user.id, {
+      description: latest[0].description ?? '',
+      techStack: latest[0].tech_stack ?? []
+    });
+  }
   return successResponse(res, { deleted: true }, 'Feature version deleted.');
 });
 
@@ -96,6 +114,7 @@ export const switchProjectVersion = asyncHandler(async (req, res) => {
   }
   const updated = await SavedProject.update(project.id, req.user.id, {
     code: version.code ?? '',
+    description: version.description ?? project.description,
     language: version.language ?? 'javascript',
     notes: version.notes ?? '',
     techStack: version.tech_stack ?? [],
