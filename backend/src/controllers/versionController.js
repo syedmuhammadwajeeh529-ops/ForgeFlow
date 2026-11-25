@@ -36,6 +36,7 @@ export const createProjectVersion = asyncHandler(async (req, res) => {
     language: req.body.language ?? project.language ?? 'javascript',
     notes: req.body.notes ?? project.notes ?? '',
     features: toArray(req.body.features),
+    techStack: Array.isArray(req.body.tech_stack) ? req.body.tech_stack : (Array.isArray(project.tech_stack) ? project.tech_stack : []),
     createdById: req.user.id
   });
   await SavedProject.update(project.id, req.user.id, { currentVersion: version.label });
@@ -64,6 +65,7 @@ export const createFeatureVersion = asyncHandler(async (req, res) => {
     label: req.body.label,
     features: toArray(req.body.features),
     notes: req.body.notes ?? '',
+    techStack: Array.isArray(req.body.tech_stack) ? req.body.tech_stack : (Array.isArray(project.tech_stack) ? project.tech_stack : []),
     createdById: req.user.id
   });
   return successResponse(res, version, 'Feature version created.', 201);
@@ -74,6 +76,7 @@ export const updateFeatureVersion = asyncHandler(async (req, res) => {
   if (Object.hasOwn(req.body, 'label')) patch.label = req.body.label;
   if (Object.hasOwn(req.body, 'features')) patch.features = toArray(req.body.features);
   if (Object.hasOwn(req.body, 'notes')) patch.notes = req.body.notes;
+  if (Object.hasOwn(req.body, 'tech_stack')) patch.techStack = req.body.tech_stack;
   const version = await FeatureVersion.update(req.params.id, req.user.id, patch);
   if (!version) throw new AppError('Feature version not found.', 404);
   return successResponse(res, version, 'Feature version updated.');
@@ -95,6 +98,7 @@ export const switchProjectVersion = asyncHandler(async (req, res) => {
     code: version.code ?? '',
     language: version.language ?? 'javascript',
     notes: version.notes ?? '',
+    techStack: version.tech_stack ?? [],
     currentVersion: version.label
   });
   return successResponse(res, updated, 'Project version restored.');
