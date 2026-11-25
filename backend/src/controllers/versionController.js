@@ -70,6 +70,10 @@ export const createFeatureVersion = asyncHandler(async (req, res) => {
     techStack: Array.isArray(req.body.tech_stack) ? req.body.tech_stack : (Array.isArray(project.tech_stack) ? project.tech_stack : []),
     createdById: req.user.id
   });
+  await SavedProject.update(project.id, req.user.id, {
+    description: version.description ?? project.description,
+    techStack: version.tech_stack ?? project.tech_stack ?? []
+  });
   return successResponse(res, version, 'Feature version created.', 201);
 });
 
