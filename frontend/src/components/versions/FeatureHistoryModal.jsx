@@ -19,7 +19,6 @@ export default function FeatureHistoryModal({ project, open, onClose }) {
   const [localFeatures, setLocalFeatures] = useState([]);
   const [localNotes, setLocalNotes] = useState('');
   const [localStack, setLocalStack] = useState([]);
-  const [localDescription, setLocalDescription] = useState('');
   const [newFeatureText, setNewFeatureText] = useState('');
 
   const projectId = project?.id;
@@ -36,6 +35,7 @@ export default function FeatureHistoryModal({ project, open, onClose }) {
   const invalidate = () => {
     queryClient.invalidateQueries({ queryKey });
     queryClient.invalidateQueries({ queryKey: ['feature-versions', projectId] });
+    queryClient.invalidateQueries({ queryKey: ['saved-projects'] });
   };
 
   const createMutation = useMutation({
@@ -71,7 +71,6 @@ export default function FeatureHistoryModal({ project, open, onClose }) {
     setLocalLabel(selected.label || '');
     setLocalFeatures(splitFeatures(selected.features));
     setLocalNotes(selected.notes || '');
-    setLocalDescription(selected.description || project?.description || '');
     setLocalStack(Array.isArray(selected.tech_stack) ? selected.tech_stack : []);
     setEditing(true);
   };
@@ -120,7 +119,7 @@ Return JSON with description (string) and tech_stack (array of technology-name s
       notes: '',
       tech_stack: details.tech_stack,
     });
-    setSelectedIdx(0);
+    setSelectedIdx(versions.length);
   };
 
   const saveEdit = async () => {
