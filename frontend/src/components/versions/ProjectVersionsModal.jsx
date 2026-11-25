@@ -30,6 +30,7 @@ export default function ProjectVersionsModal({ project, open, onClose }) {
   });
 
   const latestFeatures = featureVersions[0]?.features || '';
+  const latestTechStack = Array.isArray(featureVersions[0]?.tech_stack) ? featureVersions[0].tech_stack : (Array.isArray(project?.tech_stack) ? project.tech_stack : []);
 
   const createMutation = useMutation({
     mutationFn: (data) => base44.entities.ProjectVersion.create(data),
@@ -57,6 +58,7 @@ export default function ProjectVersionsModal({ project, open, onClose }) {
           project_id: projectId,
           label: version.label,
           features: version.features,
+          tech_stack: version.tech_stack || [],
           notes: `Restored from ${version.label}`,
         });
       }
@@ -80,6 +82,7 @@ export default function ProjectVersionsModal({ project, open, onClose }) {
       language: project?.language || 'javascript',
       notes: `Snapshot of ${latestFeatures ? 'current feature plan' : 'project'}`,
       features: latestFeatures,
+      tech_stack: latestTechStack,
     });
   };
 
@@ -130,6 +133,10 @@ export default function ProjectVersionsModal({ project, open, onClose }) {
                     </div>
                     {version.notes && <p className="text-xs text-muted-foreground line-clamp-2 mb-1">{version.notes}</p>}
                     <p className="text-[11px] text-muted-foreground">{features.length} feature{features.length !== 1 ? 's' : ''} in this version</p>
+                    <div className="flex flex-wrap gap-1 mt-2">
+                      {(Array.isArray(version.tech_stack) ? version.tech_stack : []).map((technology) => <Badge key={technology} variant="secondary" className="text-[10px]">{technology}</Badge>)}
+                      {!(Array.isArray(version.tech_stack) ? version.tech_stack : []).length && <span className="text-[10px] text-muted-foreground italic">No stack saved</span>}
+                    </div>
                   </div>
                   <div className="flex items-center gap-1 shrink-0">
                     <Button size="sm" variant={isCurrent ? 'ghost' : 'outline'} className="h-7 text-[11px] gap-1 px-2"
