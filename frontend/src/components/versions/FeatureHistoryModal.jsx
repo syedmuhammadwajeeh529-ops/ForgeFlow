@@ -18,6 +18,7 @@ export default function FeatureHistoryModal({ project, open, onClose }) {
   const [localLabel, setLocalLabel] = useState('');
   const [localFeatures, setLocalFeatures] = useState([]);
   const [localNotes, setLocalNotes] = useState('');
+  const [localStack, setLocalStack] = useState([]);
   const [newFeatureText, setNewFeatureText] = useState('');
 
   const projectId = project?.id;
@@ -69,6 +70,7 @@ export default function FeatureHistoryModal({ project, open, onClose }) {
     setLocalLabel(selected.label || '');
     setLocalFeatures(splitFeatures(selected.features));
     setLocalNotes(selected.notes || '');
+    setLocalStack(Array.isArray(selected.tech_stack) ? selected.tech_stack : []);
     setEditing(true);
   };
 
@@ -78,6 +80,7 @@ export default function FeatureHistoryModal({ project, open, onClose }) {
       label: `v0.${versions.length + 1}`,
       features: defaultFeatures(project?.category).join('\n'),
       notes: '',
+      tech_stack: Array.isArray(project?.tech_stack) ? project.tech_stack : [],
     });
     setSelectedIdx(versions.length);
   };
@@ -85,7 +88,7 @@ export default function FeatureHistoryModal({ project, open, onClose }) {
   const saveEdit = () => {
     updateMutation.mutate({
       id: selected.id,
-      data: { label: localLabel, features: localFeatures.join('\n'), notes: localNotes },
+      data: { label: localLabel, features: localFeatures.join('\n'), notes: localNotes, tech_stack: localStack },
     });
   };
 
@@ -299,6 +302,17 @@ export default function FeatureHistoryModal({ project, open, onClose }) {
                       <Button size="sm" variant="outline" onClick={addFeature} className="h-8 gap-1 text-xs shrink-0">
                         <Plus className="w-3 h-3" /> Add
                       </Button>
+                    </div>
+                  )}
+
+                  <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide mb-2">
+                    Technology stack · {editing ? localStack.length : (Array.isArray(selected.tech_stack) ? selected.tech_stack.length : 0)}
+                  </p>
+                  {editing ? (
+                    <Textarea value={localStack.join('\n')} onChange={(event) => setLocalStack(event.target.value.split('\n').map((item) => item.trim()).filter(Boolean))} placeholder="One technology per line" className="text-sm min-h-[70px] resize-none mb-4" />
+                  ) : (
+                    <div className="flex flex-wrap gap-1.5 mb-4">
+                      {(Array.isArray(selected.tech_stack) ? selected.tech_stack : []).length ? selected.tech_stack.map((technology) => <Badge key={technology} variant="secondary">{technology}</Badge>) : <span className="text-xs text-muted-foreground italic">No technologies saved for this version.</span>}
                     </div>
                   )}
 
