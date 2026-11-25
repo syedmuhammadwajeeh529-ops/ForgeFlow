@@ -26,7 +26,6 @@ export const createProjectVersionValidator = [
   body('code').optional().isString().isLength({ max: 1000000 }),
   body('language').optional().isString().isLength({ max: 100 }),
   body('notes').optional().isString().isLength({ max: 20000 }),
-  body('description').optional().isString().isLength({ max: 10000 }),
   featureValue('features'),
   techStackValue('tech_stack')
 ];
