@@ -30,7 +30,7 @@ class FeatureVersion {
 
   async findById(id, createdById) {
     const [rows] = await pool.execute(
-      `SELECT id, project_id, label, features, notes, tech_stack, created_by_id,
+      `SELECT id, project_id, label, description, features, notes, tech_stack, created_by_id,
               created_at AS created_date, updated_at AS updated_date
        FROM feature_versions WHERE id = ? AND created_by_id = ? LIMIT 1`,
       [id, createdById]
