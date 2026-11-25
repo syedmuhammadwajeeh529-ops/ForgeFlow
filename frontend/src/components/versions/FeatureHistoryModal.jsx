@@ -328,13 +328,11 @@ export default function FeatureHistoryModal({ project, open, onClose }) {
                   <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide mb-2">
                     Technology stack · {editing ? localStack.length : (Array.isArray(selected.tech_stack) ? selected.tech_stack.length : 0)}
                   </p>
-                  {editing ? (
-                    <Textarea value={localStack.join('\n')} onChange={(event) => setLocalStack(event.target.value.split('\n').map((item) => item.trim()).filter(Boolean))} placeholder="One technology per line" className="text-sm min-h-[70px] resize-none mb-4" />
-                  ) : (
-                    <div className="flex flex-wrap gap-1.5 mb-4">
-                      {(Array.isArray(selected.tech_stack) ? selected.tech_stack : []).length ? selected.tech_stack.map((technology) => <Badge key={technology} variant="secondary">{technology}</Badge>) : <span className="text-xs text-muted-foreground italic">No technologies saved for this version.</span>}
-                    </div>
-                  )}
+                  <div className="flex flex-wrap gap-1.5 mb-4">
+                    {(editing ? localStack : (Array.isArray(selected.tech_stack) ? selected.tech_stack : [])).length
+                      ? (editing ? localStack : selected.tech_stack).map((technology) => <Badge key={technology} variant="secondary">{technology}</Badge>)
+                      : <span className="text-xs text-muted-foreground italic">The stack will be calculated from this version's features when saved.</span>}
+                  </div>
 
                   <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide mb-2">
                     Change summary
