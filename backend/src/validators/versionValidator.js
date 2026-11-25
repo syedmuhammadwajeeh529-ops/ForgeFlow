@@ -1,5 +1,7 @@
 import { body, query } from 'express-validator';
 
+const techStackValue = (field) => body(field).optional().isArray({ max: 100 }).bail().custom((value) => value.every((item) => typeof item === 'string' && item.trim().length > 0 && item.length <= 150)).withMessage('Tech stack must be an array of up to 100 non-empty technology names.');
+
 const featureValue = (field) => body(field).optional().custom((value) => {
   if (Array.isArray(value)) {
     if (value.length > 200 || value.some((item) => typeof item !== 'string' || item.length > 500)) {
@@ -23,22 +25,25 @@ export const createProjectVersionValidator = [
   body('code').optional().isString().isLength({ max: 1000000 }),
   body('language').optional().isString().isLength({ max: 100 }),
   body('notes').optional().isString().isLength({ max: 20000 }),
-  featureValue('features')
+  featureValue('features'),
+  techStackValue('tech_stack')
 ];
 
 export const createFeatureVersionValidator = [
   body('project_id').isUUID().withMessage('A valid project_id is required.'),
   body('label').trim().isLength({ min: 1, max: 100 }).withMessage('Label must be 1–100 characters.'),
   featureValue('features'),
-  body('notes').optional().isString().isLength({ max: 20000 })
+  body('notes').optional().isString().isLength({ max: 20000 }),
+  techStackValue('tech_stack')
 ];
 
 export const updateFeatureVersionValidator = [
   body('label').optional().trim().isLength({ min: 1, max: 100 }),
   featureValue('features'),
   body('notes').optional().isString().isLength({ max: 20000 }),
+  techStackValue('tech_stack'),
   body().custom((value) => {
-    if (!['label', 'features', 'notes'].some((key) => Object.hasOwn(value || {}, key))) {
+    if (!['label', 'features', 'notes', 'tech_stack'].some((key) => Object.hasOwn(value || {}, key))) {
       throw new Error('Provide at least one field to update.');
     }
     return true;
