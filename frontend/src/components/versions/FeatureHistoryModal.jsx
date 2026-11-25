@@ -74,25 +74,40 @@ export default function FeatureHistoryModal({ project, open, onClose }) {
     setEditing(true);
   };
 
-  const handleCreate = () => {
+  const recalculateTechStack = async (features) => {
+    const result = await base44.integrations.Core.InvokeLLM({
+      prompt: `Recalculate the minimum technology stack required for this exact project version. Use only technologies needed by the listed features. Remove technologies no remaining feature needs, but keep shared frameworks, runtimes, databases, and libraries when at least one remaining feature still requires them. Do not add optional or speculative tools.\nProject: ${project?.title || 'Untitled'}\nDescription: ${project?.description || ''}\nCategory: ${project?.category || ''}\nExisting stack for context: ${(Array.isArray(selected?.tech_stack) ? selected.tech_stack : (Array.isArray(project?.tech_stack) ? project.tech_stack : [])).join(', ')}\nFeatures in this version:\n${features.map((item) => item.replace(/^✓ /, '')).join('\n')}\nReturn a concise, deduplicated array of technology names.`,
+      response_json_schema: { type: 'object', properties: { tech_stack: { type: 'array', items: { type: 'string' } } }, required: ['tech_stack'] },
+    });
+    if (!Array.isArray(result?.tech_stack)) throw new Error('AI did not return a valid technology stack.');
+    return [...new Set(result.tech_stack.map((item) => String(item).trim()).filter(Boolean))];
+  };
+
+  const handleCreate = async () => {
+    const features = defaultFeatures(project?.category);
+    let techStack;
+    try { techStack = await recalculateTechStack(features); }
+    catch (error) { toast({ title: 'Could not calculate the version stack', description: error.message, variant: 'destructive' }); return; }
     createMutation.mutate({
       project_id: projectId,
       label: `v0.${versions.length + 1}`,
-      features: defaultFeatures(project?.category).join('\n'),
+      features: features.join('\n'),
       notes: '',
-      tech_stack: Array.isArray(project?.tech_stack) ? project.tech_stack : [],
+      tech_stack: techStack,
     });
     setSelectedIdx(versions.length);
   };
 
-  const saveEdit = () => {
-    updateMutation.mutate({
-      id: selected.id,
-      data: { label: localLabel, features: localFeatures.join('\n'), notes: localNotes, tech_stack: localStack },
-    });
+  const saveEdit = async () => {
+    try {
+      const techStack = await recalculateTechStack(localFeatures);
+      updateMutation.mutate({ id: selected.id, data: { label: localLabel, features: localFeatures.join('\n'), notes: localNotes, tech_stack: techStack } });
+    } catch (error) {
+      toast({ title: 'Could not recalculate technology stack', description: error.message, variant: 'destructive' });
+    }
   };
 
-  const toggleFeature = (feature) => {
+  const toggleFeature = async (feature) => {
     if (editing) {
       setLocalFeatures((prev) =>
         prev.map((f) => (f === feature ? (f.startsWith('✓ ') ? f.slice(2) : `✓ ${f}`) : f))
@@ -102,7 +117,12 @@ export default function FeatureHistoryModal({ project, open, onClose }) {
     const updated = splitFeatures(selected.features).map((f) =>
       f === feature ? (f.startsWith('✓ ') ? f.slice(2) : `✓ ${f}`) : f
     );
-    updateMutation.mutate({ id: selected.id, data: { features: updated.join('\n') } });
+    try {
+      const techStack = await recalculateTechStack(updated);
+      updateMutation.mutate({ id: selected.id, data: { features: updated.join('\n'), tech_stack: techStack } });
+    } catch (error) {
+      toast({ title: 'Could not recalculate technology stack', description: error.message, variant: 'destructive' });
+    }
   };
 
   const addFeature = () => {
