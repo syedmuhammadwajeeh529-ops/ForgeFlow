@@ -190,6 +190,7 @@ CREATE TABLE IF NOT EXISTS project_versions (
     project_id CHAR(36) NOT NULL,
 
     label VARCHAR(100) NOT NULL,
+    description TEXT,
     code LONGTEXT,
     language VARCHAR(100),
     notes TEXT,
@@ -229,6 +230,7 @@ CREATE TABLE IF NOT EXISTS feature_versions (
     project_id CHAR(36) NOT NULL,
 
     label VARCHAR(100) NOT NULL,
+    description TEXT,
     features LONGTEXT,
     notes TEXT,
     tech_stack JSON,
