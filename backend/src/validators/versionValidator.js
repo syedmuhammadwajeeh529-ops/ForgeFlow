@@ -22,9 +22,11 @@ export const listVersionsValidator = [
 export const createProjectVersionValidator = [
   body('project_id').isUUID().withMessage('A valid project_id is required.'),
   body('label').trim().isLength({ min: 1, max: 100 }).withMessage('Label must be 1–100 characters.'),
+  body('description').optional().isString().isLength({ max: 10000 }),
   body('code').optional().isString().isLength({ max: 1000000 }),
   body('language').optional().isString().isLength({ max: 100 }),
   body('notes').optional().isString().isLength({ max: 20000 }),
+  body('description').optional().isString().isLength({ max: 10000 }),
   featureValue('features'),
   techStackValue('tech_stack')
 ];
@@ -32,6 +34,7 @@ export const createProjectVersionValidator = [
 export const createFeatureVersionValidator = [
   body('project_id').isUUID().withMessage('A valid project_id is required.'),
   body('label').trim().isLength({ min: 1, max: 100 }).withMessage('Label must be 1–100 characters.'),
+  body('description').optional().isString().isLength({ max: 10000 }),
   featureValue('features'),
   body('notes').optional().isString().isLength({ max: 20000 }),
   techStackValue('tech_stack')
@@ -39,11 +42,12 @@ export const createFeatureVersionValidator = [
 
 export const updateFeatureVersionValidator = [
   body('label').optional().trim().isLength({ min: 1, max: 100 }),
+  body('description').optional().isString().isLength({ max: 10000 }),
   featureValue('features'),
   body('notes').optional().isString().isLength({ max: 20000 }),
   techStackValue('tech_stack'),
   body().custom((value) => {
-    if (!['label', 'features', 'notes', 'tech_stack'].some((key) => Object.hasOwn(value || {}, key))) {
+    if (!['label', 'description', 'features', 'notes', 'tech_stack'].some((key) => Object.hasOwn(value || {}, key))) {
       throw new Error('Provide at least one field to update.');
     }
     return true;
