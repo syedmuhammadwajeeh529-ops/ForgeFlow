@@ -29,7 +29,7 @@ class ProjectVersion {
 
   async findById(id, createdById) {
     const [rows] = await pool.execute(
-      `SELECT id, project_id, label, code, language, notes, features, tech_stack, created_by_id,
+      `SELECT id, project_id, label, description, code, language, notes, features, tech_stack, created_by_id,
               created_at AS created_date, updated_at AS updated_date
        FROM project_versions WHERE id = ? AND created_by_id = ? LIMIT 1`,
       [id, createdById]
