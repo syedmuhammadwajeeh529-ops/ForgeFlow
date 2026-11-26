@@ -159,22 +159,27 @@ export default function Explore() {
 
   const filteredIdeas = aiIdeas ?? displayedIdeas ?? defaultIdeas;
 
-  const generateAiIdeas = async (text, pageCategory = null) => {
-    const categoryPrompt = pageCategory
-      ? pageCategory === 'All'
-        ? 'Generate exactly 5 fresh, distinct software project ideas across different categories. Do not reuse common catalogue ideas.'
-        : 'Generate exactly 5 fresh, distinct ' + pageCategory + ' software project ideas. Every idea must genuinely belong to the ' + pageCategory + ' category. Do not generate ideas for other categories and do not reuse common catalogue ideas.'
-      : null;
-    const generationPrompt = categoryPrompt || text.trim();
-    if (!generationPrompt) { setAiIdeas(null); return; }
+  const generateAiIdeas = async (text, pageCategory = category) => {
+    const description = text.trim();
+    const selectedCategory = pageCategory || 'All';
+    if (!description && selectedCategory === 'All') { setAiIdeas(null); return; }
+
+    const categoryRule = selectedCategory === 'All'
+      ? 'Infer the most relevant software project category from the user description. Keep all five ideas within that inferred category unless the description explicitly asks for multiple related categories.'
+      : 'STRICT CATEGORY: Generate every idea exclusively for the selected category: "' + selectedCategory + '". Every idea must genuinely be a ' + selectedCategory + ' project. Do not generate ideas from any other category. Do not treat the category as a suggestion.';
+    const generationPrompt = [
+      'Generate exactly 5 fresh, distinct software project ideas.',
+      categoryRule,
+      description
+        ? 'USER DESCRIPTION (the project theme and requirements to follow):\\n"' + description + '"\\nUse this description as the subject of every idea. Create different concrete project concepts that satisfy it; do not replace it with generic or unrelated ideas.'
+        : 'The user has not supplied an extra description. Generate five original ideas that belong to the selected category.',
+      'Do not generate generic homepage concepts, random mixed-category ideas, or ideas unrelated to the user description.',
+      'Return exactly 5 objects. Set each idea category accurately. Do not merely relabel an unrelated idea to match the category.'
+    ].join('\\n\\n');
     setAiGenerating(true);
     try {
     const result = await base44.integrations.Core.InvokeLLM({
-      prompt: categoryPrompt || (
-        'Generate exactly 5 distinct project idea variations based on this concept: "' + text + '".\n' +
-        'Each variation should be a specific, concrete take on the concept, with different implementations, modes, mechanics, or scopes.\n' +
-        'Always stay true to the exact concept typed and do not change it to a different domain or category. Return exactly 5 objects.'
-      ),
+      prompt: generationPrompt,
       response_json_schema: {
         type: 'object',
         properties: {
@@ -199,9 +204,11 @@ export default function Explore() {
     if (generated.length !== 5) {
       throw new Error('The AI provider did not return exactly 5 ideas. Please try again.');
     }
+    if (selectedCategory !== 'All' && generated.some((idea) => idea.category !== selectedCategory)) {
+      throw new Error('The AI returned an idea outside the selected category. Please try again.');
+    }
     let ideas = generated.map((idea) => ({
       ...idea,
-      ...(pageCategory && pageCategory !== 'All' ? { category: pageCategory } : {}),
       is_curated: false,
     }));
     if (isAuthenticated) {
@@ -254,7 +261,7 @@ export default function Explore() {
       if (event.results[0].isFinal) {
         setAiIdeas(null);
         clearTimeout(debounceRef.current);
-        debounceRef.current = setTimeout(() => generateAiIdeas(transcript), 100);
+        debounceRef.current = setTimeout(() => generateAiIdeas(transcript, category), 100);
       }
     };
     recognition.start();
@@ -317,7 +324,7 @@ export default function Explore() {
             onKeyDown={e => {
               if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault();
-                generateAiIdeas(plannerText);
+                generateAiIdeas(plannerText, category);
               }
             }}
           />
