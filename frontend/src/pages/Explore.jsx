@@ -171,11 +171,11 @@ export default function Explore() {
       'Generate exactly 5 fresh, distinct software project ideas.',
       categoryRule,
       description
-        ? 'USER DESCRIPTION (the project theme and requirements to follow):\\n"' + description + '"\\nUse this description as the subject of every idea. Create different concrete project concepts that satisfy it; do not replace it with generic or unrelated ideas.'
+        ? 'USER DESCRIPTION (the project theme and requirements to follow):\n"' + description + '"\nUse this description as the subject of every idea. Create different concrete project concepts that satisfy it; do not replace it with generic or unrelated ideas.'
         : 'The user has not supplied an extra description. Generate five original ideas that belong to the selected category.',
       'Do not generate generic homepage concepts, random mixed-category ideas, or ideas unrelated to the user description.',
       'Return exactly 5 objects. Set each idea category accurately. Do not merely relabel an unrelated idea to match the category.'
-    ].join('\\n\\n');
+    ].join('\n\n');
     setAiGenerating(true);
     try {
     const result = await base44.integrations.Core.InvokeLLM({
