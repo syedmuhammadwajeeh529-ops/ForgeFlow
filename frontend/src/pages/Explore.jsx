@@ -162,10 +162,10 @@ export default function Explore() {
   const generateAiIdeas = async (text, pageCategory = category) => {
     const description = text.trim();
     const selectedCategory = pageCategory || 'All';
-    if (!description && selectedCategory === 'All') { setAiIdeas(null); return; }
-
     const categoryRule = selectedCategory === 'All'
-      ? 'Infer the most relevant software project category from the user description. Keep all five ideas within that inferred category unless the description explicitly asks for multiple related categories.'
+      ? description
+        ? 'Infer the most relevant software project category from the user description. Keep all five ideas within that inferred category unless the description explicitly asks for multiple related categories.'
+        : 'Generate five fresh software project ideas across different categories, with each idea accurately labeled.'
       : 'STRICT CATEGORY: Generate every idea exclusively for the selected category: "' + selectedCategory + '". Every idea must genuinely be a ' + selectedCategory + ' project. Do not generate ideas from any other category. Do not treat the category as a suggestion.';
     const generationPrompt = [
       'Generate exactly 5 fresh, distinct software project ideas.',
